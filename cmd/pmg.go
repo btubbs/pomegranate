@@ -16,7 +16,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "pmg"
-	app.Usage = "Create and run Pomegranate migrations"
+	app.Usage = "Create and run Postgres migrations"
 	app.Version = "0.0.1"
 
 	dirFlag := cli.StringFlag{

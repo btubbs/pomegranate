@@ -1,0 +1,11 @@
+- add forward and backward commands
+- more consistent error handling (stubs wraps errors with more context, ingest
+  just passes them up)
+- add tests
+  - init stubs
+  - regular stubs (including auto numbering)
+  - ingest
+  - history
+  - running init stubs (forward and back)
+- add README
+- read config from env vars and/or config file?
