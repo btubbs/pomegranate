@@ -59,19 +59,19 @@ func zeroPad(num, digits int) string {
 	return fmt.Sprintf("%"+fmt.Sprintf("0%dd", digits), num)
 }
 
-func isMigration(file string) bool {
+func isMigration(dir string) bool {
 	pat := fmt.Sprintf(`^[\d]{%d}_.*$`, leadingDigits)
-	match, err := regexp.MatchString(pat, file)
+	match, err := regexp.MatchString(pat, dir)
 	if err != nil {
 		return false
 	}
 	return match
 }
 
-// return a sorted list of subfolders that match our pattern
-func getExistingMigrations(folder string) ([]string, error) {
+// return a sorted list of subdirs that match our pattern
+func getMigrationFileNames(dir string) ([]string, error) {
 	names := []string{}
-	files, err := ioutil.ReadDir(folder)
+	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("error listing migration files: %v", err)
 	}
@@ -88,8 +88,8 @@ func getExistingMigrations(folder string) ([]string, error) {
 	return names, nil
 }
 
-func getLatestMigrationNumber(folder string) (int, error) {
-	files, err := getExistingMigrations(folder)
+func getLatestMigrationNumber(dir string) (int, error) {
+	files, err := getMigrationFileNames(dir)
 	if err != nil {
 		return 0, fmt.Errorf("error getting migration number: %v", err)
 	}
@@ -105,18 +105,18 @@ func getLatestMigrationNumber(folder string) (int, error) {
 	return num, nil
 }
 
-func writeMigrations(folder, name, forwardSql, backwardSql string) error {
-	newFolder := path.Join(folder, name)
+func writeStubs(dir, name, forwardSQL, backwardSQL string) error {
+	newFolder := path.Join(dir, name)
 	err := os.Mkdir(newFolder, 0755)
 	if err != nil {
 		return fmt.Errorf("error creating migration directory %s: %v", newFolder, err)
 	}
 
-	err = ioutil.WriteFile(path.Join(newFolder, "forward.sql"), []byte(forwardSql), 0644)
+	err = ioutil.WriteFile(path.Join(newFolder, "forward.sql"), []byte(forwardSQL), 0644)
 	if err != nil {
 		return fmt.Errorf("error writing migration file: %v", err)
 	}
-	err = ioutil.WriteFile(path.Join(newFolder, "backward.sql"), []byte(backwardSql), 0644)
+	err = ioutil.WriteFile(path.Join(newFolder, "backward.sql"), []byte(backwardSQL), 0644)
 	if err != nil {
 		return fmt.Errorf("error writing migration file: %v", err)
 	}
@@ -124,30 +124,30 @@ func writeMigrations(folder, name, forwardSql, backwardSql string) error {
 	return nil
 }
 
-func makeMigrationName(numPart int, namePart string) string {
+func makeStubName(numPart int, namePart string) string {
 	return fmt.Sprintf("%s_%s", zeroPad(numPart, leadingDigits), namePart)
 }
 
-func NewMigration(folder, name string) error {
-	latestNum, err := getLatestMigrationNumber(folder)
+func NewMigration(dir, name string) error {
+	latestNum, err := getLatestMigrationNumber(dir)
 	if err != nil {
 		return fmt.Errorf("error making new migration: %v", err)
 	}
-	newName := makeMigrationName(latestNum+1, name)
-	forwardSql := fmt.Sprintf(ForwardTmpl, newName)
-	backwardSql := fmt.Sprintf(BackwardTmpl, newName)
-	err = writeMigrations(folder, newName, forwardSql, backwardSql)
+	newName := makeStubName(latestNum+1, name)
+	forwardSQL := fmt.Sprintf(ForwardTmpl, newName)
+	backwardSQL := fmt.Sprintf(BackwardTmpl, newName)
+	err = writeStubs(dir, newName, forwardSQL, backwardSQL)
 	if err != nil {
 		return fmt.Errorf("error making new migration: %v", err)
 	}
 	return nil
 }
 
-func InitMigration(folder string) error {
-	name := makeMigrationName(1, "init")
-	forwardSql := fmt.Sprintf(InitForwardTmpl, name)
-	backwardSql := fmt.Sprintf(InitBackwardTmpl, name)
-	err := writeMigrations(folder, name, forwardSql, backwardSql)
+func InitMigration(dir string) error {
+	name := makeStubName(1, "init")
+	forwardSQL := fmt.Sprintf(InitForwardTmpl, name)
+	backwardSQL := fmt.Sprintf(InitBackwardTmpl, name)
+	err := writeStubs(dir, name, forwardSQL, backwardSQL)
 	if err != nil {
 		return err
 	}
