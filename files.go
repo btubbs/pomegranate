@@ -63,7 +63,6 @@ func ReadMigrationFiles(dir string) ([]Migration, error) {
 func IngestMigrations(dir, goFile, packageName string, generateTag bool) error {
 	migs, err := ReadMigrationFiles(dir)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return writeGoMigrations(dir, goFile, packageName, migs, generateTag)

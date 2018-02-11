@@ -121,5 +121,5 @@ func getMigrationsToReverse(name string, history []MigrationRecord, allMigration
 			return toRun, nil
 		}
 	}
-	return nil, fmt.Errorf("migration %s not found", name)
+	return nil, fmt.Errorf("migration %s not in history", name)
 }

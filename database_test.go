@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var dburl string
 var master *sql.DB
 var r *rand.Rand
 
@@ -29,7 +31,10 @@ func randName() string {
 func freshDB() (*sql.DB, func()) {
 	name := "pmgtest" + randName()
 	master.Exec("CREATE DATABASE " + name)
-	url := fmt.Sprintf("postgres://postgres@/%s?sslmode=disable", name)
+
+	newURL, _ := url.Parse(dburl)
+	newURL.Path = "/" + name
+	url := fmt.Sprintf(newURL.String())
 	db, _ := sql.Open("postgres", url)
 	cleanup := func() {
 		db.Close()
@@ -41,7 +46,11 @@ func freshDB() (*sql.DB, func()) {
 func TestMain(m *testing.M) {
 	r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	var err error
-	master, err = sql.Open("postgres", "postgres://postgres@/postgres?sslmode=disable")
+	dburl = os.Getenv("DATABASE_URL")
+	if dburl == "" {
+		dburl = "postgres://postgres@/postgres?sslmode=disable"
+	}
+	master, err = sql.Open("postgres", dburl)
 	if err != nil {
 		os.Exit(1)
 	}
