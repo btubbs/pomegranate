@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -50,12 +51,15 @@ func runMigrationSQL(db *sql.DB, name, sqlToRun string) error {
 	fmt.Printf("Running %s... ", name)
 	_, err := db.Exec(sqlToRun)
 	if err != nil {
+		fmt.Println("Failure :(")
 		return fmt.Errorf("error: %v", err)
 	}
 	fmt.Println("Success!")
 	return nil
 }
 
+// MigrateBackwardTo will run backward migrations starting with the most recent
+// in history, and going through the one provided in `name`.
 func MigrateBackwardTo(name string, db *sql.DB, allMigrations []Migration, confirm bool) error {
 	if len(allMigrations) == 0 {
 		return errors.New("no migrations provided")
@@ -74,7 +78,7 @@ func MigrateBackwardTo(name string, db *sql.DB, allMigrations []Migration, confi
 	}
 	// get confirmation on the list of backward migrations we're going to run
 	if confirm {
-		if err := getConfirm(toRun, "Backward"); err != nil {
+		if err := getConfirm(toRun, "Backward", os.Stdin); err != nil {
 			return err
 		}
 	}
@@ -119,7 +123,7 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 		return err
 	}
 	if confirm {
-		if err := getConfirm(toRun, "Forward"); err != nil {
+		if err := getConfirm(toRun, "Forward", os.Stdin); err != nil {
 			return err
 		}
 	}

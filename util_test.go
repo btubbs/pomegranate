@@ -2,10 +2,35 @@ package pomegranate
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestConfirm(t *testing.T) {
+	tt := []struct {
+		input string
+		err   error
+	}{
+		{
+			input: "y",
+			err:   nil,
+		},
+		{
+			input: "n",
+			err:   errors.New("cancelled"),
+		},
+		{
+			input: "banana",
+			err:   errors.New("Invalid option: banana"),
+		},
+	}
+	for _, tc := range tt {
+		err := getConfirm(goodMigrations, "", strings.NewReader(tc.input+"\n"))
+		assert.Equal(t, tc.err, err)
+	}
+}
 
 func TestGetForwardMigrations(t *testing.T) {
 	tt := []struct {
@@ -59,31 +84,4 @@ func TestGetForwardMigrations(t *testing.T) {
 		assert.Equal(t, tc.err, err)
 		assert.Equal(t, tc.toRun, migsToNames(toRun))
 	}
-}
-
-func namesToHistory(names []string) []MigrationRecord {
-	migs := []MigrationRecord{}
-	for _, name := range names {
-		migs = append(migs, MigrationRecord{Name: name})
-	}
-	return migs
-}
-
-func namesToMigs(names []string) []Migration {
-	migs := []Migration{}
-	for _, name := range names {
-		migs = append(migs, Migration{Name: name})
-	}
-	return migs
-}
-
-func migsToNames(migs []Migration) []string {
-	if migs == nil {
-		return nil
-	}
-	names := []string{}
-	for _, mig := range migs {
-		names = append(names, mig.Name)
-	}
-	return names
 }

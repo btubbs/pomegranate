@@ -43,6 +43,23 @@ func InitMigration(dir string) error {
 	return nil
 }
 
+func ReadMigrationFiles(dir string) ([]Migration, error) {
+	names, err := getMigrationFileNames(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	migs := []Migration{}
+	for _, name := range names {
+		m, err := readMigration(dir, name)
+		if err != nil {
+			return nil, err
+		}
+		migs = append(migs, m)
+	}
+	return migs, nil
+}
+
 func IngestMigrations(dir, goFile, packageName string, generateTag bool) error {
 	migs, err := ReadMigrationFiles(dir)
 	if err != nil {
@@ -122,23 +139,6 @@ func readMigration(dir, name string) (Migration, error) {
 	m.ForwardSQL = string(fwd)
 	m.BackwardSQL = string(back)
 	return m, nil
-}
-
-func ReadMigrationFiles(dir string) ([]Migration, error) {
-	names, err := getMigrationFileNames(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	migs := []Migration{}
-	for _, name := range names {
-		m, err := readMigration(dir, name)
-		if err != nil {
-			return nil, err
-		}
-		migs = append(migs, m)
-	}
-	return migs, nil
 }
 
 func writeGoMigrations(dir, goFile, packageName string, migs []Migration, generateTag bool) error {

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
@@ -29,7 +29,7 @@ func nameInHistory(name string, history []MigrationRecord) bool {
 	return false
 }
 
-func getConfirm(toRun []Migration, forwardBack string) error {
+func getConfirm(toRun []Migration, forwardBack string, input io.Reader) error {
 	names := []string{}
 	for _, mig := range toRun {
 		names = append(names, mig.Name)
@@ -39,18 +39,19 @@ func getConfirm(toRun []Migration, forwardBack string) error {
 		forwardBack,
 		strings.Join(names, "\n"),
 	)
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(input)
 	resp, err := reader.ReadString('\n')
 	if err != nil {
 		return err
 	}
-	resp = strings.TrimSpace(resp)
-	if resp == "y" {
+
+	switch resp = strings.TrimSpace(resp); resp {
+	case "y":
 		return nil
-	} else {
-		fmt.Printf("Invalid option: %s\n", resp)
+	case "n":
+		return errors.New("cancelled")
 	}
-	return errors.New("migration cancelled")
+	return fmt.Errorf("Invalid option: %s", resp)
 }
 
 // getForwardMigrations takes a history of already run migrations, and the list
