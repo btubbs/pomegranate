@@ -23,6 +23,9 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run:
+          name: Wait for db
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
           name: run the tests
           command: go test . 
           environment:
