@@ -30,7 +30,7 @@ func Connect(dburl string) (*sql.DB, error) {
 	return sql.Open("postgres", dburl)
 }
 
-// GetMigrationState returns the list of migration records stored in the
+// GetMigrationState returns the stack of migration records stored in the
 // database's migration_state table.  If that table does not exist, it returns
 // an empty list.
 func GetMigrationState(db *sql.DB) ([]MigrationRecord, error) {
@@ -64,6 +64,40 @@ func GetMigrationState(db *sql.DB) ([]MigrationRecord, error) {
 		pastMigrations = append(pastMigrations, pm)
 	}
 	return pastMigrations, nil
+}
+
+// GetMigrationLog returns the complete history of all migrations, forward and backward.  If the
+// migration_log table does not exist, it returns an empty list of MigrationLogRecords
+func GetMigrationLog(db *sql.DB) ([]MigrationLogRecord, error) {
+	var exists bool
+	err := db.QueryRow(`
+      SELECT EXISTS (
+         SELECT 1 
+         FROM   pg_tables
+         WHERE  schemaname = 'public'
+         AND    tablename = 'migration_log'
+       );`).Scan(&exists)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return []MigrationLogRecord{}, nil
+	}
+	rows, err := db.Query("SELECT id, time, name, op, who FROM migration_log ORDER BY id")
+	if err != nil {
+		return nil, fmt.Errorf("get migration log: %v", err)
+	}
+	defer rows.Close()
+	records := []MigrationLogRecord{}
+	for rows.Next() {
+		var r MigrationLogRecord
+		if err := rows.Scan(&r.ID, &r.Time, &r.Name, &r.Op, &r.Who); err != nil {
+			return nil, fmt.Errorf("get migration log: %v", err)
+		}
+		records = append(records, r)
+	}
+	return records, nil
 }
 
 // MigrateBackwardTo will run backward migrations starting with the most recent

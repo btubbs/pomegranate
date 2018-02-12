@@ -125,6 +125,49 @@ func TestGetState(t *testing.T) {
 	assert.Equal(t, expected, names)
 }
 
+func TestGetLog(t *testing.T) {
+	db, cleanup := freshDB()
+	defer cleanup()
+	db.Exec(goodMigrations[0].ForwardSQL)
+	db.Exec(goodMigrations[1].ForwardSQL)
+	db.Exec(goodMigrations[2].ForwardSQL)
+	db.Exec(goodMigrations[2].BackwardSQL)
+	db.Exec(goodMigrations[1].BackwardSQL)
+	db.Exec(goodMigrations[1].ForwardSQL)
+	db.Exec(goodMigrations[2].ForwardSQL)
+
+	log, err := GetMigrationLog(db)
+
+	assert.Nil(t, err)
+	names := []string{}
+	ops := []string{}
+	for _, mr := range log {
+		names = append(names, mr.Name)
+		ops = append(ops, mr.Op)
+	}
+	expectedNames := []string{
+		goodMigrations[0].Name,
+		goodMigrations[1].Name,
+		goodMigrations[2].Name,
+		goodMigrations[2].Name,
+		goodMigrations[1].Name,
+		goodMigrations[1].Name,
+		goodMigrations[2].Name,
+	}
+	assert.Equal(t, expectedNames, names)
+
+	expectedOps := []string{
+		"INSERT",
+		"INSERT",
+		"INSERT",
+		"DELETE",
+		"DELETE",
+		"INSERT",
+		"INSERT",
+	}
+	assert.Equal(t, expectedOps, ops)
+}
+
 func TestMigrateForwardTo(t *testing.T) {
 	db, cleanup := freshDB()
 	defer cleanup()
@@ -180,11 +223,13 @@ func TestMigrateBackwardTo(t *testing.T) {
 	previousName := goodMigrations[0].Name
 	assert.Equal(t, previousName, state[len(state)-1].Name)
 
-	// all the way back
+	// all the way back should fail.
 	err = MigrateBackwardTo(goodMigrations[0].Name, db, goodMigrations, false)
-	assert.Nil(t, err)
-	state, _ = GetMigrationState(db)
-	assert.Equal(t, []MigrationRecord{}, state)
+	assert.Equal(t,
+		errors.New(
+			"error: pq: Will not roll back 00001_init.  You must manually drop the migration_state and migration_log tables."),
+		err,
+	)
 }
 
 func TestMigrateFailure(t *testing.T) {
@@ -248,23 +293,46 @@ CREATE TABLE migration_state (
 	PRIMARY KEY (name)
 );
 
+CREATE TABLE migration_log (
+  id SERIAL PRIMARY KEY,
+  time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  name TEXT NOT NULL,
+  op TEXT NOT NULL,
+  who TEXT NOT NULL DEFAULT CURRENT_USER
+);
+
+CREATE OR REPLACE FUNCTION record_migration() RETURNS trigger AS $$
+BEGIN
+	IF TG_OP='DELETE' THEN
+		INSERT INTO migration_log (name, op) VALUES (
+			OLD.name,
+			TG_OP
+		);
+		RETURN OLD;
+	ELSE
+		INSERT INTO migration_log (name, op) VALUES (
+          NEW.name,
+          TG_OP
+		);
+		RETURN NEW;
+	END IF;
+END;
+$$ language plpgsql;
+
+CREATE TRIGGER record_migration AFTER INSERT OR UPDATE OR DELETE ON migration_state
+  FOR EACH ROW EXECUTE PROCEDURE record_migration();
+
 INSERT INTO migration_state(name) VALUES ('00001_init');
 COMMIT;
 `,
 		BackwardSQL: `BEGIN;
-CREATE OR REPLACE FUNCTION safe_drop_state() RETURNS void AS $$
+CREATE OR REPLACE FUNCTION no_rollback() RETURNS void AS $$
 BEGIN
-	IF (SELECT count(*) FROM migration_state)=0 THEN
-		DROP TABLE migration_state;
-	ELSE
-		RAISE 'migration_state table not empty';
-	END IF;
+  RAISE 'Will not roll back 00001_init.  You must manually drop the migration_state and migration_log tables.';
 END;
 $$ LANGUAGE plpgsql;
 
-DELETE FROM migration_state WHERE name='00001_init';
-SELECT safe_drop_state();
-DROP FUNCTION safe_drop_state();
+SELECT no_rollback();
 COMMIT;
 `,
 	}, {
@@ -323,23 +391,46 @@ CREATE TABLE migration_state (
 	PRIMARY KEY (name)
 );
 
+CREATE TABLE migration_log (
+  id SERIAL PRIMARY KEY,
+  time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  name TEXT NOT NULL,
+  op TEXT NOT NULL,
+  who TEXT NOT NULL DEFAULT CURRENT_USER
+);
+
+CREATE OR REPLACE FUNCTION record_migration() RETURNS trigger AS $$
+BEGIN
+	IF TG_OP='DELETE' THEN
+		INSERT INTO migration_log (name, op) VALUES (
+			OLD.name,
+			TG_OP
+		);
+		RETURN OLD;
+	ELSE
+		INSERT INTO migration_log (name, op) VALUES (
+          NEW.name,
+          TG_OP
+		);
+		RETURN NEW;
+	END IF;
+END;
+$$ language plpgsql;
+
+CREATE TRIGGER record_migration AFTER INSERT OR UPDATE OR DELETE ON migration_state
+  FOR EACH ROW EXECUTE PROCEDURE record_migration();
+
 INSERT INTO migration_state(name) VALUES ('00001_init');
 COMMIT;
 `,
 		BackwardSQL: `BEGIN;
-CREATE OR REPLACE FUNCTION safe_drop_state() RETURNS void AS $$
+CREATE OR REPLACE FUNCTION no_rollback() RETURNS void AS $$
 BEGIN
-	IF (SELECT count(*) FROM migration_state)=0 THEN
-		DROP TABLE migration_state;
-	ELSE
-		RAISE 'migration_state table not empty';
-	END IF;
+  RAISE 'Will not roll back 00001_init.  You must manually drop the migration_state and migration_log tables.';
 END;
 $$ LANGUAGE plpgsql;
 
-DELETE FROM migration_state WHERE name='00001_init';
-SELECT safe_drop_state();
-DROP FUNCTION safe_drop_state();
+SELECT no_rollback();
 COMMIT;
 `,
 	}, {

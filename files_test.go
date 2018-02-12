@@ -23,7 +23,7 @@ func TestWriteInitMigration(t *testing.T) {
 	b, _ := ioutil.ReadFile(path.Join(dir, "00001_init", "backward.sql"))
 	assert.Contains(t,
 		string(b),
-		"DELETE FROM migration_state WHERE name='00001_init';",
+		"Will not roll back 00001_init.",
 	)
 }
 

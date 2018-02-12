@@ -8,9 +8,10 @@ package pomegranate
 
 import "time"
 
-// MigrationRecord provides information on which migrations ran, and when.
-// An array of MigrationRecords is referred to as a "state" throughout the
-// Pomegranate source.
+// MigrationRecord provides information on which migrations ran, and when.  An array of
+// MigrationRecords is referred to as a "state" throughout the Pomegranate source.  These are
+// treated as a stack; MigrationRecords are added (inserted into the DB) as migrations run forward,
+// and popped off (deleted from the DB) as migrations are run backward.
 type MigrationRecord struct {
 	Name string    `db:"name"`
 	Time time.Time `db:"time"`
@@ -35,4 +36,16 @@ func (m Migration) QuotedForward() string {
 // backticks for easy injection into a migrations.go template.
 func (m Migration) QuotedBackward() string {
 	return "`" + m.BackwardSQL + "`"
+}
+
+// MigrationLogRecord represents a specific migration run at a specific point in time.  Unlike
+// MigrationRecord, this is an append-only table, showing the complete history of all forward and
+// backward migrations.  It is populated automatically by a Postgres trigger created in the init
+// migration.
+type MigrationLogRecord struct {
+	ID   int       `db:"id"`
+	Time time.Time `db:"time"`
+	Name string    `db:"name"`
+	Op   string    `db:"op"`
+	Who  string    `db:"who"`
 }

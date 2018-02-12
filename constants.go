@@ -12,24 +12,47 @@ CREATE TABLE migration_state (
 	PRIMARY KEY (name)
 );
 
+CREATE TABLE migration_log (
+  id SERIAL PRIMARY KEY,
+  time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  name TEXT NOT NULL,
+  op TEXT NOT NULL,
+  who TEXT NOT NULL DEFAULT CURRENT_USER
+);
+
+CREATE OR REPLACE FUNCTION record_migration() RETURNS trigger AS $$
+BEGIN
+	IF TG_OP='DELETE' THEN
+		INSERT INTO migration_log (name, op) VALUES (
+			OLD.name,
+			TG_OP
+		);
+		RETURN OLD;
+	ELSE
+		INSERT INTO migration_log (name, op) VALUES (
+          NEW.name,
+          TG_OP
+		);
+		RETURN NEW;
+	END IF;
+END;
+$$ language plpgsql;
+
+CREATE TRIGGER record_migration AFTER INSERT OR UPDATE OR DELETE ON migration_state
+  FOR EACH ROW EXECUTE PROCEDURE record_migration();
+
 INSERT INTO migration_state(name) VALUES ('%s');
 COMMIT;
 `
 
 const initBackwardTmpl = `BEGIN;
-CREATE OR REPLACE FUNCTION safe_drop_state() RETURNS void AS $$
+CREATE OR REPLACE FUNCTION no_rollback() RETURNS void AS $$
 BEGIN
-	IF (SELECT count(*) FROM migration_state)=0 THEN
-		DROP TABLE migration_state;
-	ELSE
-		RAISE 'migration_state table not empty';
-	END IF;
+  RAISE 'Will not roll back %s.  You must manually drop the migration_state and migration_log tables.';
 END;
 $$ LANGUAGE plpgsql;
 
-DELETE FROM migration_state WHERE name='%s';
-SELECT safe_drop_state();
-DROP FUNCTION safe_drop_state();
+SELECT no_rollback();
 COMMIT;
 `
 
