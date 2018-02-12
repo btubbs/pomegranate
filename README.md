@@ -25,7 +25,7 @@ For now, pomegranate has to be built from source:
 You can use Pomegranate in two ways:
 
 1. As a standalone command line tool (`pmg`).
-2. As a library (`package pomegranate`) in your own Go project.
+2. As a library (`github.com/btubbs/pomegranate`) in your own Go project.
 
 ### Using `pmg`
 #### Create initial migration
@@ -141,6 +141,9 @@ The `history` command will show all migrations recorded in the
 If your project is written in Go, Pomegranate may also be integrated into your
 project so that migrations can be included inside your binary program and
 executed by it.
+
+The full public interface is documented at
+[https://godoc.org/github.com/btubbs/pomegranate](https://godoc.org/github.com/btubbs/pomegranate).
 
 #### Ingest migrations
 

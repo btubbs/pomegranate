@@ -13,6 +13,40 @@ import (
 	"text/template"
 )
 
+// IngestMigrations reads all the migrations in the given directory and writes
+// them to a Go source file in the same directory.  The generateTag argument
+// determins whether the new Go file will contain a "//go:generate" comment to
+// tag it for automatic regeneration by "go generate".
+func IngestMigrations(dir, goFile, packageName string, generateTag bool) error {
+	migs, err := ReadMigrationFiles(dir)
+	if err != nil {
+		return err
+	}
+	err = writeGoMigrations(dir, goFile, packageName, migs, generateTag)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Migrations written to %s\n", path.Join(dir, goFile))
+	return nil
+}
+
+// InitMigration creates a new 00001_init migration in the given directory.
+// This migration will contain the SQL commands necessary to create the
+// migration_history table.
+func InitMigration(dir string) error {
+	name := makeStubName(1, "init")
+	forwardSQL := fmt.Sprintf(initForwardTmpl, name)
+	backwardSQL := fmt.Sprintf(initBackwardTmpl, name)
+	err := writeStubs(dir, name, forwardSQL, backwardSQL)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// NewMigration creates a new directory containing forward.sql and backward.sql
+// stubs.  The directory created will use the name provided to the function,
+// prepended by an auto-incrementing zero-padded number.
 func NewMigration(dir, name string) error {
 	names, err := getMigrationFileNames(dir)
 	if err != nil {
@@ -32,17 +66,8 @@ func NewMigration(dir, name string) error {
 	return nil
 }
 
-func InitMigration(dir string) error {
-	name := makeStubName(1, "init")
-	forwardSQL := fmt.Sprintf(initForwardTmpl, name)
-	backwardSQL := fmt.Sprintf(initBackwardTmpl, name)
-	err := writeStubs(dir, name, forwardSQL, backwardSQL)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
+// ReadMigrationFiles reads all the migration files in the given directory and
+// returns an array of Migration objects.
 func ReadMigrationFiles(dir string) ([]Migration, error) {
 	names, err := getMigrationFileNames(dir)
 	if err != nil {
@@ -58,19 +83,6 @@ func ReadMigrationFiles(dir string) ([]Migration, error) {
 		migs = append(migs, m)
 	}
 	return migs, nil
-}
-
-func IngestMigrations(dir, goFile, packageName string, generateTag bool) error {
-	migs, err := ReadMigrationFiles(dir)
-	if err != nil {
-		return err
-	}
-	err = writeGoMigrations(dir, goFile, packageName, migs, generateTag)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Migrations written to %s\n", path.Join(dir, goFile))
-	return nil
 }
 
 // return a sorted list of subdirs that match our pattern
