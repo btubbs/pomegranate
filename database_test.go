@@ -57,21 +57,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestSimpleConnect(t *testing.T) {
-	simpleURL := os.Getenv("DATABASE_URL")
-	if simpleURL == "" {
-		simpleURL = "postgres://postgres@/postgres?sslmode=disable"
-	}
-	db, err := Connect(simpleURL)
-	assert.Equal(t, nil, err)
-	defer db.Close()
-	var result int
-	err = db.QueryRow("SELECT 1").Scan(&result)
-	fmt.Println("err", err)
-	assert.Nil(t, err)
-	assert.Equal(t, 1, result)
-}
-
 func TestConnect(t *testing.T) {
 
 	goodURL, _ := url.Parse(dburl)
