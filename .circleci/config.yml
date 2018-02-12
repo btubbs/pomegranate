@@ -34,6 +34,6 @@ jobs:
       - run:
           name: run the tests
           command: go test . 
-          environment:
-            DATABASE_URL: postgres://circle:pwd@127.0.0.1:5432/circle_test?sslmode=disable
+          #environment:
+            #DATABASE_URL: postgres://circle:pwd@127.0.0.1:5432/circle_test?sslmode=disable
 
