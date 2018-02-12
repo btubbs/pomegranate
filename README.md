@@ -12,8 +12,6 @@ control ticket and have your DBA run it. Postgres' best-in-class support for
 DDL](https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis)
 makes this safety and transparency possible.
 
-
-
 ## Installation
 
 For now, pomegranate has to be built from source:
@@ -47,7 +45,7 @@ The `00001_init` directory should now exist, and contain `forward.sql` and
 #### Create more migrations
 
 Migrations containing your own custom changes should be made with the `pmg new`
-command.
+command:
 
     $ pmg new add_customers_table
     Migration stubs written to 00002_add_customers_table
@@ -105,6 +103,11 @@ instead:
     Running 00001_init... Success!
     Done
 
+If a migration fails, DON'T PANIC.  Your database should still be in the same
+state it was in before that `forward.sql` script was executed. (Unless you put
+commands outside the `BEGIN` and `COMMIT` lines.)  Fix the problem in your
+script, and run `pmg forward` again.
+
 #### Roll back migrations
 
 Rolling back is done with the `backwardto` command.  This will run the
@@ -120,7 +123,7 @@ including the one specified in the command.
     Done
 
 Unlike going forward, `pmg` does NOT provide a `backward` command that will
-migrate all the way back.  You must always provide a specific migration name to
+migrate all the way back.  You must always provide an explicit migration name to
 `backwardto`.
 
 #### View migration history
@@ -133,5 +136,112 @@ The `history` command will show all migrations recorded in the
     NAME       | WHEN                                 | WHO
     00001_init | 2018-02-11 20:48:51.827197 -0700 MST | postgres
 
-### Using the pomegranate package
+### Using the pomegranate package in Go
+
+If your project is written in Go, Pomegranate may also be integrated into your
+project so that migrations can be included inside your binary program and
+executed by it.
+
 #### Ingest migrations
+
+Use the `pmg ingest` command to turn your .sql migrations into a .go file that
+can be compiled into your project.  Run it in the same directory as your
+migrations, or use the `--dir` option.
+
+    $ pmg ingest
+    Migrations written to migrations.go
+
+By default, migrations are written to `migrations.go` with `package migrations`
+at the top.  You can customize the name of the .go file and the package name
+inside it with the `--gofile` and `--package` options, respectively.
+
+The file created will have an `All` variable in it containing all your
+migrations.
+
+The file will also have a `//go:generate...` tag inside it that will allow to to
+re-generate your .go file by running `go generate` in your migrations directory.
+
+
+#### Run migrations from your code
+
+Use Pomegranate's `MigrateForwardTo` function to run migrations forward.  It
+takes four arguments:
+
+- the name that you want to migrate to
+- a DB connection
+- your ingested migrations
+- a boolean flag indicating whether to ask for "y/n" confirmation on the
+  command line
+
+    pomegranate.MigrateForwardTo(name, db, migrations.All, true)
+
+`MigrateBackwardTo` and `GetMigrationHistory` functions are also available.
+
+#### A complete example
+
+Here's the complete file layout of a simple project that uses Pomegranate:
+
+    tree
+    .
+    ├── migrations
+    │   ├── 00001_init
+    │   │   ├── backward.sql
+    │   │   └── forward.sql
+    │   ├── 00002_add_customers_table
+    │   │   ├── backward.sql
+    │   │   └── forward.sql
+    │   └── 00003_add_address_column
+    │       ├── backward.sql
+    │       └── forward.sql
+    └── my_awesome_app.go
+
+In that example, my_awesome_app.go looks like this:
+
+    package main
+
+    import (
+      "fmt"
+      "os"
+
+      "github.com/btubbs/my_awesome_app/migrations"
+      "github.com/btubbs/pomegranate"
+    )
+
+    func main() {
+      db, err := pomegranate.Connect(
+        "postgres://postgres@/awesome_app?sslmode=disable")
+      if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+      }
+      // passing an empty string as name will run to the latest migration
+      pomegranate.MigrateForwardTo("", db, migrations.All, true)
+    }
+
+
+Given the above, you can build my_awesome_app like so:
+
+
+    $ cd migrations
+    $ pmg ingest
+    Migrations written to migrations.go
+    $ cd ..
+    $ go build
+    $ ./my_awesome_app 
+    Connecting to database 'postgres' on host ''
+    No migrations to run
+    $ e my_awesome_app.go 
+    $ go build
+
+And run it like so:
+
+    $ ./my_awesome_app 
+    Connecting to database 'awesome_app' on host ''
+    Forward migrations that will be run:
+    00001_init
+    00002_add_customers_table
+    00003_add_address_column
+    Run these migrations? (y/n) y
+    Running 00001_init... Success!
+    Running 00002_add_customers_table... Success!
+    Running 00003_add_address_column... Success!

@@ -65,7 +65,12 @@ func IngestMigrations(dir, goFile, packageName string, generateTag bool) error {
 	if err != nil {
 		return err
 	}
-	return writeGoMigrations(dir, goFile, packageName, migs, generateTag)
+	err = writeGoMigrations(dir, goFile, packageName, migs, generateTag)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Migrations written to %s\n", path.Join(dir, goFile))
+	return nil
 }
 
 // return a sorted list of subdirs that match our pattern

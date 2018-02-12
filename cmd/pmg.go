@@ -79,9 +79,9 @@ func main() {
 					Value: "migrations",
 					Usage: "Go package name for file to be written",
 				},
-				cli.BoolTFlag{
-					Name:  "gogenerate",
-					Usage: "Whether to include a go:generate tag inside file",
+				cli.BoolFlag{
+					Name:  "nogenerate",
+					Usage: "Don't include a go:generate tag inside file",
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -89,7 +89,7 @@ func main() {
 					c.String("dir"),
 					c.String("gofile"),
 					c.String("package"),
-					c.Bool("gogenerate"),
+					!c.Bool("nogenerate"),
 				)
 				if err != nil {
 					return cli.NewExitError(err, 1)
