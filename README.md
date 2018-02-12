@@ -12,6 +12,9 @@ control ticket and have your DBA run it. Postgres's best-in-class support for
 DDL](https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis)
 makes this safety and transparency possible.
 
+Go projects can also use `pmg` to convert their .sql migrations into a `migrations.go` file that
+will be compiled into their project and run with the `pomegranate` package.
+
 ## Installation
 
 For now, pomegranate has to be built from source:
