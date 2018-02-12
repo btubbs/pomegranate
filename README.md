@@ -7,7 +7,7 @@ raised, ensuring the database is not left in a half-migrated state. Further, the
 .sql migration files created by Pomegranate are the exact SQL that will be run
 at migration time; you will get the same result whether you call `pmg forward`,
 or feed a forward.sql file to `psql`, or attach the forward.sql file to a change
-control ticket and have your DBA run it. Postgres' best-in-class support for
+control ticket and have your DBA run it. Postgres's best-in-class support for
 [transactional
 DDL](https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis)
 makes this safety and transparency possible.
@@ -123,8 +123,8 @@ including the one specified in the command.
     Done
 
 Unlike going forward, `pmg` does NOT provide a `backward` command that will
-migrate all the way back.  You must always provide an explicit migration name to
-`backwardto`.
+migrate all the way back.  You must use `backwardto` and provide an explicit
+migration name.
 
 #### View migration history
 

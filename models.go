@@ -9,7 +9,7 @@ import "time"
 
 // MigrationRecord provides information on which migrations ran, and when.
 // An array of MigrationRecords is referred to as a "history" throughout the
-// Pomoegranate source.
+// Pomegranate source.
 type MigrationRecord struct {
 	Name string    `db:"name"`
 	Time time.Time `db:"time"`
