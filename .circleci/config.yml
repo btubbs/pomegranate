@@ -7,7 +7,13 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.8
-      - image: postgres:9.6
+        environment:
+          DATABASE_URL: postgres://circle:pwd@127.0.0.1:5432/circle_test?sslmode=disable
+      - image: circleci/postgres:9.6.2-alpine
+        environment:
+          POSTGRES_USER: circle 
+          POSTGRES_DB: circle_test
+          POSTGRES_PASSWORD: "pwd"
       
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -29,4 +35,5 @@ jobs:
           name: run the tests
           command: go test . 
           environment:
-            DATABASE_URL: postgres://root:circleci_test@127.0.0.1:5432/circle_test?sslmode=disable
+            DATABASE_URL: postgres://circle:pwd@127.0.0.1:5432/circle_test?sslmode=disable
+
