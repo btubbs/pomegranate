@@ -183,7 +183,7 @@ pomegranate.MigrateForwardTo(name, db, migrations.All, true)
 
 Here's the complete file layout of an extremely simple project that uses Pomegranate:
 
-    tree
+    $ tree
     .
     ├── migrations
     │   ├── 00001_init
