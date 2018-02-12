@@ -58,17 +58,49 @@ func TestMain(m *testing.M) {
 }
 
 func TestConnect(t *testing.T) {
-	name := "pmgtest" + randName()
-	master.Exec("CREATE DATABASE " + name)
-	defer master.Exec("DROP DATABASE " + name)
-	url := fmt.Sprintf("postgres://postgres@/%s?sslmode=disable", name)
-	db, err := Connect(url)
-	assert.Nil(t, err)
-	defer db.Close()
-	var result int
-	err = db.QueryRow("SELECT 1").Scan(&result)
-	assert.Nil(t, err)
-	assert.Equal(t, 1, result)
+	tt := []struct {
+		dbname string
+		dburl  string
+		err    error
+		urlerr *url.Error
+	}{
+		{
+			dbname: "goodconnect",
+			dburl:  "postgres://postgres@/goodconnect?sslmode=disable",
+			err:    nil,
+			urlerr: nil,
+		},
+		{
+			dbname: "emptyurl",
+			dburl:  "",
+			err:    errors.New("empty database url provided"),
+			urlerr: nil,
+		},
+		{
+			dbname: "badurl",
+			dburl:  ":",
+			err:    nil,
+			urlerr: &url.Error{"parse", ":", errors.New("missing protocol scheme")},
+		},
+	}
+
+	for _, tc := range tt {
+		master.Exec("CREATE DATABASE " + tc.dbname)
+		defer master.Exec("DROP DATABASE " + tc.dbname)
+		db, err := Connect(tc.dburl)
+		if tc.urlerr != nil {
+			assert.Equal(t, tc.urlerr, err)
+		} else {
+			assert.Equal(t, tc.err, err)
+		}
+		if err == nil {
+			defer db.Close()
+			var result int
+			err = db.QueryRow("SELECT 1").Scan(&result)
+			assert.Nil(t, err)
+			assert.Equal(t, 1, result)
+		}
+	}
 }
 
 func TestGetHistory(t *testing.T) {
@@ -310,15 +342,15 @@ DROP FUNCTION safe_drop_history();
 COMMIT;
 `,
 	}, {
-		Name: "00002_fail",
+		Name: "00002_intentional_fail",
 		ForwardSQL: `BEGIN;
 SELECT 1 / 0;
-INSERT INTO migration_history(name) VALUES ('00002_fail');
+INSERT INTO migration_history(name) VALUES ('00002_intentional_fail');
 COMMIT;
 `,
 		BackwardSQL: `BEGIN;
 SELECT 1 / 0;
-DELETE FROM migration_history WHERE name='00002_fail';
+DELETE FROM migration_history WHERE name='00002_intentional_fail';
 COMMIT;
 `,
 	},
