@@ -3,3 +3,5 @@ go:
   - 1.9
 services:
   - postgresql    
+addons:
+  postgresql: "9.6"    
