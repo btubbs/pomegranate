@@ -7,10 +7,7 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.8
-      - image: circleci/postgres:9.6-alpine-ram
-        environment:
-        - POSTGRES_USER=ubuntu
-        - POSTGRES_DB=circle_test        
+      - image: postgres:9.6
       
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
