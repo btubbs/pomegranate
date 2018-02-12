@@ -31,7 +31,7 @@ You can use Pomegranate in two ways:
 #### Create initial migration
 
 Use the `pmg init` command to create your first migration, which will be
-responsible for creating the `migrations_history` table.  It will create the
+responsible for creating the `migration_state` table.  It will create the
 migration in the current directory, or you can specify a different one with the
 `--dir` option.
 
@@ -66,7 +66,7 @@ it obvious where your commands should go:
     SELECT 1 / 0; -- delete this line
 
     -- ^^^^^^^^ PUT FORWARD MIGRATION CODE ABOVE HERE ^^^^^^^^
-    INSERT INTO migration_history(name) VALUES ('00002_add_customers_table');
+    INSERT INTO migration_state(name) VALUES ('00002_add_customers_table');
     COMMIT;
 
 The `SELECT 1 / 0;` line in the stub is a safeguard against accidentally running
@@ -78,7 +78,7 @@ the changes in `forward.sql`, in case you decide they were a bad idea.
 #### Run migrations
 
 Use the `forward` command to run all migrations not yet recorded in the
-`migration_history` table.  Pomegranate will connect to the database specified
+`migration_state` table.  Pomegranate will connect to the database specified
 in the `DATABASE_URL` environment variable, or you can supply a database URL
 with the `--dburl` option.
 
@@ -126,12 +126,12 @@ Unlike going forward, `pmg` does NOT provide a `backward` command that will
 migrate all the way back.  You must use `backwardto` and provide an explicit
 migration name.
 
-#### View migration history
+#### View migration state 
 
-The `history` command will show all migrations recorded in the
-`migration_history` table:
+The `state` command will show all migrations recorded in the
+`migration_state` table:
 
-    $ pmg history
+    $ pmg state 
     Connecting to database 'readme' on host ''
     NAME       | WHEN                                 | WHO
     00001_init | 2018-02-11 20:48:51.827197 -0700 MST | postgres
@@ -180,7 +180,7 @@ takes four arguments:
 pomegranate.MigrateForwardTo(name, db, migrations.All, true)
 ~~~
 
-`MigrateBackwardTo` and `GetMigrationHistory` functions are also available.
+`MigrateBackwardTo` and `GetMigrationState` functions are also available.
 
 #### A complete example
 

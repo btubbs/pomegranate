@@ -32,7 +32,7 @@ func IngestMigrations(dir, goFile, packageName string, generateTag bool) error {
 
 // InitMigration creates a new 00001_init migration in the given directory.
 // This migration will contain the SQL commands necessary to create the
-// migration_history table.
+// migration_state table.
 func InitMigration(dir string) error {
 	name := makeStubName(1, "init")
 	forwardSQL := fmt.Sprintf(initForwardTmpl, name)

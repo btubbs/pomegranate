@@ -5,31 +5,31 @@ const forwardFile = "forward.sql"
 const backwardFile = "backward.sql"
 
 const initForwardTmpl = `BEGIN;
-CREATE TABLE migration_history (
+CREATE TABLE migration_state (
 	name TEXT NOT NULL,
 	time TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
 	who TEXT DEFAULT CURRENT_USER NOT NULL,
 	PRIMARY KEY (name)
 );
 
-INSERT INTO migration_history(name) VALUES ('%s');
+INSERT INTO migration_state(name) VALUES ('%s');
 COMMIT;
 `
 
 const initBackwardTmpl = `BEGIN;
-CREATE OR REPLACE FUNCTION safe_drop_history() RETURNS void AS $$
+CREATE OR REPLACE FUNCTION safe_drop_state() RETURNS void AS $$
 BEGIN
-	IF (SELECT count(*) FROM migration_history)=0 THEN
-		DROP TABLE migration_history;
+	IF (SELECT count(*) FROM migration_state)=0 THEN
+		DROP TABLE migration_state;
 	ELSE
-		RAISE 'migration_history table not empty';
+		RAISE 'migration_state table not empty';
 	END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-DELETE FROM migration_history WHERE name='%s';
-SELECT safe_drop_history();
-DROP FUNCTION safe_drop_history();
+DELETE FROM migration_state WHERE name='%s';
+SELECT safe_drop_state();
+DROP FUNCTION safe_drop_state();
 COMMIT;
 `
 
@@ -39,7 +39,7 @@ const forwardTmpl = `BEGIN;
 SELECT 1 / 0; -- delete this line
 
 -- ^^^^^^^^ PUT FORWARD MIGRATION CODE ABOVE HERE ^^^^^^^^
-INSERT INTO migration_history(name) VALUES ('%s');
+INSERT INTO migration_state(name) VALUES ('%s');
 COMMIT;
 `
 
@@ -49,7 +49,7 @@ const backwardTmpl = `BEGIN;
 SELECT 1 / 0; -- delete this line
 
 -- ^^^^^^^^ PUT BACKWARD MIGRATION CODE ABOVE HERE ^^^^^^^^
-DELETE FROM migration_history WHERE name='%s';
+DELETE FROM migration_state WHERE name='%s';
 COMMIT;
 `
 

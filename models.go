@@ -9,7 +9,7 @@ package pomegranate
 import "time"
 
 // MigrationRecord provides information on which migrations ran, and when.
-// An array of MigrationRecords is referred to as a "history" throughout the
+// An array of MigrationRecords is referred to as a "state" throughout the
 // Pomegranate source.
 type MigrationRecord struct {
 	Name string    `db:"name"`

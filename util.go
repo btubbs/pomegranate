@@ -20,8 +20,8 @@ func nameInMigrationList(name string, migrations []Migration) bool {
 	return false
 }
 
-func nameInHistory(name string, history []MigrationRecord) bool {
-	for _, mig := range history {
+func nameInState(name string, state []MigrationRecord) bool {
+	for _, mig := range state {
 		if name == mig.Name {
 			return true
 		}
@@ -54,25 +54,25 @@ func getConfirm(toRun []Migration, forwardBack string, input io.Reader) error {
 	return fmt.Errorf("Invalid option: %s", resp)
 }
 
-// getForwardMigrations takes a history of already run migrations, and the list
+// getForwardMigrations takes a state of already run migrations, and the list
 // of all migrations, and returns all that haven't been run yet.  Error if the
-// history is out of sync with the allMigrations list.
-func getForwardMigrations(history []MigrationRecord, allMigrations []Migration) ([]Migration, error) {
-	historyCount := len(history)
+// state is out of sync with the allMigrations list.
+func getForwardMigrations(state []MigrationRecord, allMigrations []Migration) ([]Migration, error) {
+	stateCount := len(state)
 	migCount := len(allMigrations)
-	if historyCount > migCount {
-		return nil, errors.New("migration history longer than static list")
+	if stateCount > migCount {
+		return nil, errors.New("migration state longer than static list")
 	}
 
-	for i := 0; i < historyCount; i++ {
-		if history[i].Name != allMigrations[i].Name {
+	for i := 0; i < stateCount; i++ {
+		if state[i].Name != allMigrations[i].Name {
 			return nil, fmt.Errorf(
-				"migration %d from history (%s) does not match name from static list (%s)",
-				i+1, history[i].Name, allMigrations[i].Name,
+				"migration %d from state (%s) does not match name from static list (%s)",
+				i+1, state[i].Name, allMigrations[i].Name,
 			)
 		}
 	}
-	return allMigrations[historyCount:], nil
+	return allMigrations[stateCount:], nil
 }
 
 func trimMigrationsTail(newtail string, migrations []Migration) ([]Migration, error) {
@@ -86,40 +86,40 @@ func trimMigrationsTail(newtail string, migrations []Migration) ([]Migration, er
 	return nil, fmt.Errorf("migration %s not found", newtail)
 }
 
-// getMigrationsToReverse takes the name that you're rolling back to, history of
+// getMigrationsToReverse takes the name that you're rolling back to, state of
 // all migrations run so far, and an ordered list of all possible migrations.
-func getMigrationsToReverse(name string, history []MigrationRecord, allMigrations []Migration) ([]Migration, error) {
+func getMigrationsToReverse(name string, state []MigrationRecord, allMigrations []Migration) ([]Migration, error) {
 	// get name of most recent migration
-	latest := history[len(history)-1].Name
-	// trim allMigrations to ignore anything newer than latest in history.
+	latest := state[len(state)-1].Name
+	// trim allMigrations to ignore anything newer than latest in state.
 	reversableMigrations, err := trimMigrationsTail(latest, allMigrations)
 	if err != nil {
 		return nil, err
 	}
 
-	// reversableMigrations and history should now be the same length
-	if le, lh := len(reversableMigrations), len(history); le != lh {
+	// reversableMigrations and state should now be the same length
+	if le, lh := len(reversableMigrations), len(state); le != lh {
 		return nil, fmt.Errorf(
-			"history in DB has %d migrations, but we have source for %d migrations up to and including %s",
+			"state in DB has %d migrations, but we have source for %d migrations up to and including %s",
 			lh, le, latest,
 		)
 	}
-	// loop backward over history and allmigrations, asserting that names match,
+	// loop backward over state and allmigrations, asserting that names match,
 	// and building list of migrations that need running, until we get to the name
 	// we're looking for.
 	// If we fall off the end, error.
 	toRun := []Migration{}
-	for i := len(history) - 1; i >= 0; i-- {
-		if history[i].Name != reversableMigrations[i].Name {
+	for i := len(state) - 1; i >= 0; i-- {
+		if state[i].Name != reversableMigrations[i].Name {
 			return nil, fmt.Errorf(
-				"migration %d from history (%s) does not match name from static list (%s)",
-				i+1, history[i].Name, reversableMigrations[i].Name,
+				"migration %d from state (%s) does not match name from static list (%s)",
+				i+1, state[i].Name, reversableMigrations[i].Name,
 			)
 		}
 		toRun = append(toRun, reversableMigrations[i])
-		if history[i].Name == name {
+		if state[i].Name == name {
 			return toRun, nil
 		}
 	}
-	return nil, fmt.Errorf("migration %s not in history", name)
+	return nil, fmt.Errorf("migration %s not in state", name)
 }

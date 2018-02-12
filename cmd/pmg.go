@@ -144,15 +144,15 @@ func main() {
 			},
 		},
 		{
-			Name:  "history",
-			Usage: "show the migration history",
+			Name:  "state",
+			Usage: "show the migration state",
 			Flags: []cli.Flag{dbFlag},
 			Action: func(c *cli.Context) error {
 				db, err := pomegranate.Connect(c.String("dburl"))
 				if err != nil {
 					return cli.NewExitError(err, 1)
 				}
-				migs, err := pomegranate.GetMigrationHistory(db)
+				migs, err := pomegranate.GetMigrationState(db)
 				w := new(tabwriter.Writer)
 				w.Init(os.Stdout, 5, 0, 1, ' ', tabwriter.Debug)
 				fmt.Fprintln(w, "NAME\t WHEN\t WHO")

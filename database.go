@@ -30,18 +30,18 @@ func Connect(dburl string) (*sql.DB, error) {
 	return sql.Open("postgres", dburl)
 }
 
-// GetMigrationHistory returns the list of migration records stored in the
-// database's migation_history table.  If that table does not exist, it returns
+// GetMigrationState returns the list of migration records stored in the
+// database's migration_state table.  If that table does not exist, it returns
 // an empty list.
-func GetMigrationHistory(db *sql.DB) ([]MigrationRecord, error) {
-	// first see if the migration_history table exists
+func GetMigrationState(db *sql.DB) ([]MigrationRecord, error) {
+	// first see if the migration_state table exists
 	var exists bool
 	err := db.QueryRow(`
       SELECT EXISTS (
          SELECT 1 
          FROM   pg_tables
          WHERE  schemaname = 'public'
-         AND    tablename = 'migration_history'
+         AND    tablename = 'migration_state'
        );`).Scan(&exists)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func GetMigrationHistory(db *sql.DB) ([]MigrationRecord, error) {
 	if !exists {
 		return []MigrationRecord{}, nil
 	}
-	rows, err := db.Query("SELECT name, time, who FROM migration_history ORDER BY name")
+	rows, err := db.Query("SELECT name, time, who FROM migration_state ORDER BY name")
 	if err != nil {
 		return nil, fmt.Errorf("get past migrations: %v", err)
 	}
@@ -67,20 +67,20 @@ func GetMigrationHistory(db *sql.DB) ([]MigrationRecord, error) {
 }
 
 // MigrateBackwardTo will run backward migrations starting with the most recent
-// in history, and going through the one provided in `name`.
+// in state, and going through the one provided in `name`.
 func MigrateBackwardTo(name string, db *sql.DB, allMigrations []Migration, confirm bool) error {
 	if len(allMigrations) == 0 {
 		return errors.New("no migrations provided")
 	}
-	history, err := GetMigrationHistory(db)
+	state, err := GetMigrationState(db)
 	if err != nil {
-		return fmt.Errorf("could not get migration history: %v", err)
+		return fmt.Errorf("could not get migration state: %v", err)
 	}
-	// if nothing in history, nothing to do. error
-	if len(history) == 0 {
-		return errors.New("history is empty. cannot migrate back")
+	// if nothing in state, nothing to do. error
+	if len(state) == 0 {
+		return errors.New("state is empty. cannot migrate back")
 	}
-	toRun, err := getMigrationsToReverse(name, history, allMigrations)
+	toRun, err := getMigrationsToReverse(name, state, allMigrations)
 	if err != nil {
 		return err
 	}
@@ -107,17 +107,17 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 	if len(allMigrations) == 0 {
 		return errors.New("no migrations provided")
 	}
-	history, err := GetMigrationHistory(db)
+	state, err := GetMigrationState(db)
 	if err != nil {
-		return fmt.Errorf("could not get migration history: %v", err)
+		return fmt.Errorf("could not get migration state: %v", err)
 	}
-	if nameInHistory(name, history) {
+	if nameInState(name, state) {
 		return fmt.Errorf("migration '%s' has already been run", name)
 	}
 	if name == "" {
 		name = allMigrations[len(allMigrations)-1].Name
 	}
-	forwardMigrations, err := getForwardMigrations(history, allMigrations)
+	forwardMigrations, err := getForwardMigrations(state, allMigrations)
 	if len(forwardMigrations) == 0 {
 		fmt.Println("No migrations to run")
 		return nil

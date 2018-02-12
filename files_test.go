@@ -18,12 +18,12 @@ func TestWriteInitMigration(t *testing.T) {
 	f, _ := ioutil.ReadFile(path.Join(dir, "00001_init", "forward.sql"))
 	assert.Contains(t,
 		string(f),
-		"INSERT INTO migration_history(name) VALUES ('00001_init');",
+		"INSERT INTO migration_state(name) VALUES ('00001_init');",
 	)
 	b, _ := ioutil.ReadFile(path.Join(dir, "00001_init", "backward.sql"))
 	assert.Contains(t,
 		string(b),
-		"DELETE FROM migration_history WHERE name='00001_init';",
+		"DELETE FROM migration_state WHERE name='00001_init';",
 	)
 }
 
@@ -36,13 +36,13 @@ func TestWriteNewMigration(t *testing.T) {
 	f, _ := ioutil.ReadFile(path.Join(dir, "00001_"+name, "forward.sql"))
 	assert.Contains(t,
 		string(f),
-		fmt.Sprintf("INSERT INTO migration_history(name) VALUES ('00001_%s');",
+		fmt.Sprintf("INSERT INTO migration_state(name) VALUES ('00001_%s');",
 			name),
 	)
 	b, _ := ioutil.ReadFile(path.Join(dir, "00001_"+name, "backward.sql"))
 	assert.Contains(t,
 		string(b),
-		fmt.Sprintf("DELETE FROM migration_history WHERE name='00001_%s';", name),
+		fmt.Sprintf("DELETE FROM migration_state WHERE name='00001_%s';", name),
 	)
 }
 
@@ -56,13 +56,13 @@ func TestAutoNumber(t *testing.T) {
 	f, _ := ioutil.ReadFile(path.Join(dir, "00002_"+name, "forward.sql"))
 	assert.Contains(t,
 		string(f),
-		fmt.Sprintf("INSERT INTO migration_history(name) VALUES ('00002_%s');",
+		fmt.Sprintf("INSERT INTO migration_state(name) VALUES ('00002_%s');",
 			name),
 	)
 	b, _ := ioutil.ReadFile(path.Join(dir, "00002_"+name, "backward.sql"))
 	assert.Contains(t,
 		string(b),
-		fmt.Sprintf("DELETE FROM migration_history WHERE name='00002_%s';", name),
+		fmt.Sprintf("DELETE FROM migration_state WHERE name='00002_%s';", name),
 	)
 }
 
