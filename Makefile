@@ -1,6 +1,6 @@
 .PHONY: tests viewcoverage
 
-all: bin/pomegranate
+all: tests 
 
 bin/pomegranate: cmd/main.go
 	go build -o $@ $<

@@ -32,9 +32,4 @@ jobs:
           name: Wait for db
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run: echo "connecting to $DATABASE_URL"
-      - run:
-          name: run the tests
-          command: go test . 
-          #environment:
-            #DATABASE_URL: postgres://circle:pwd@127.0.0.1:5432/circle_test?sslmode=disable
-
+      - run: go test .
