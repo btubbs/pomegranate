@@ -66,8 +66,10 @@ func TestSimpleConnect(t *testing.T) {
 	db, err := Connect(simpleURL)
 	fmt.Println("db", db)
 	fmt.Println("err", err)
-	operr := err.(*net.OpError)
-	fmt.Println("syscallerr", operr.Err)
+	if err != nil {
+		operr := err.(*net.OpError)
+		fmt.Println("syscallerr", operr.Err)
+	}
 	assert.Equal(t, err, nil)
 	defer db.Close()
 	var result int
