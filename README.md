@@ -1,3 +1,3 @@
 # Pomegranate
 
-Current test status: [![CircleCI](https://circleci.com/gh/btubbs/pomegranate/tree/master.svg?style=svg)](https://circleci.com/gh/btubbs/pomegranate/tree/master)
+Build status: [![Build Status](https://travis-ci.org/btubbs/pomegranate.svg?branch=master)](https://travis-ci.org/btubbs/pomegranate)
