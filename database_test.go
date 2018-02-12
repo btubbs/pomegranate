@@ -57,6 +57,20 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestSimpleConnect(t *testing.T) {
+	simpleURL := os.Getenv("DATABASE_URL")
+	if simpleURL == "" {
+		simpleURL = "postgres://postgres@/postgres?sslmode=disable"
+	}
+	db, err := Connect(simpleURL)
+	assert.Equal(t, err, nil)
+	defer db.Close()
+	var result int
+	err = db.QueryRow("SELECT 1").Scan(&result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, result)
+}
+
 func TestConnect(t *testing.T) {
 
 	goodURL, _ := url.Parse(dburl)
@@ -65,37 +79,35 @@ func TestConnect(t *testing.T) {
 		dbname string
 		dburl  string
 		err    error
-		urlerr *url.Error
 	}{
 		{
 			dbname: "goodconnect",
 			dburl:  goodURL.String(),
 			err:    nil,
-			urlerr: nil,
 		},
 		{
 			dbname: "emptyurl",
 			dburl:  "",
 			err:    errors.New("empty database url provided"),
-			urlerr: nil,
 		},
 		{
 			dbname: "badurl",
 			dburl:  ":",
-			err:    nil,
-			urlerr: &url.Error{"parse", ":", errors.New("missing protocol scheme")},
+			err:    &url.Error{"parse", ":", errors.New("missing protocol scheme")},
 		},
 	}
 
 	for _, tc := range tt {
-		master.Exec("CREATE DATABASE " + tc.dbname)
-		defer master.Exec("DROP DATABASE " + tc.dbname)
-		db, err := Connect(tc.dburl)
-		if tc.urlerr != nil {
-			assert.Equal(t, tc.urlerr, err)
-		} else {
-			assert.Equal(t, tc.err, err)
+		if tc.err == nil {
+			master.Exec("CREATE DATABASE " + tc.dbname)
+			master.Exec(
+				fmt.Sprintf(
+					"GRANT ALL PRIVILEGES ON DATABASE %s TO %s",
+					tc.dbname, goodURL.User))
+			defer master.Exec("DROP DATABASE " + tc.dbname)
 		}
+		db, err := Connect(tc.dburl)
+		assert.Equal(t, tc.err, err)
 		if err == nil {
 			defer db.Close()
 			var result int
