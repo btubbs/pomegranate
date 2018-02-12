@@ -58,6 +58,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestConnect(t *testing.T) {
+
+	goodURL, _ := url.Parse(dburl)
+	goodURL.Path = "/goodconnect"
 	tt := []struct {
 		dbname string
 		dburl  string
@@ -66,7 +69,7 @@ func TestConnect(t *testing.T) {
 	}{
 		{
 			dbname: "goodconnect",
-			dburl:  "postgres://postgres@/goodconnect?sslmode=disable",
+			dburl:  goodURL.String(),
 			err:    nil,
 			urlerr: nil,
 		},
