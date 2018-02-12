@@ -8,6 +8,8 @@ jobs:
       # specify the version
       - image: circleci/golang:1.8
       - image: circleci/postgres:9.4
+        environment:
+        - DATABASE_URL: postgres://ubuntu:@127.0.0.1:5432/circle_test
       
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
