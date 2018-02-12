@@ -2,7 +2,8 @@
 // and safely running SQL migrations.
 //
 // Go projects can use pomegranate to ingest .sql files into a Go binary,
-// and run them from there.
+// and run them from there.  See the README.md on Github for examples and
+// explanations.
 package pomegranate
 
 import "time"
