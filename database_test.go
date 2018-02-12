@@ -70,7 +70,7 @@ func TestSimpleConnect(t *testing.T) {
 		operr := err.(*net.OpError)
 		fmt.Println("syscallerr", operr.Err)
 	}
-	assert.Equal(t, err, nil)
+	assert.Equal(t, "", err.Error())
 	defer db.Close()
 	var result int
 	err = db.QueryRow("SELECT 1").Scan(&result)
