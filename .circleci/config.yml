@@ -7,7 +7,7 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.8
-      - image: postgres:9.6.2-alpine
+      - image: circleci/postgres:9.6-alpine-ram
         environment:
         - POSTGRES_USER=ubuntu
         - POSTGRES_DB=db_name        
@@ -29,4 +29,4 @@ jobs:
           name: run the tests
           command: go test . 
           environment:
-            DATABASE_URL: postgres://ubuntu:@127.0.0.1:5432/db_name?sslmode=disable
+            DATABASE_URL: postgres://ubuntu:@127.0.0.1:5433/circle_test?sslmode=disable
