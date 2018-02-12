@@ -63,6 +63,8 @@ func TestSimpleConnect(t *testing.T) {
 		simpleURL = "postgres://postgres@/postgres?sslmode=disable"
 	}
 	db, err := Connect(simpleURL)
+	fmt.Println("db", db)
+	fmt.Println("err", err)
 	assert.Equal(t, err, nil)
 	defer db.Close()
 	var result int
