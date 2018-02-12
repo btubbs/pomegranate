@@ -8,7 +8,7 @@ package pomegranate
 
 import "time"
 
-// MigrationRecord provides information on which migrations ran, and when.  An array of
+// MigrationRecord provides information on which migrations are currently in effect.  An array of
 // MigrationRecords is referred to as a "state" throughout the Pomegranate source.  These are
 // treated as a stack; MigrationRecords are added (inserted into the DB) as migrations run forward,
 // and popped off (deleted from the DB) as migrations are run backward.
