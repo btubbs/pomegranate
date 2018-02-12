@@ -173,13 +173,15 @@ takes four arguments:
 - a boolean flag indicating whether to ask for "y/n" confirmation on the
   command line
 
-    pomegranate.MigrateForwardTo(name, db, migrations.All, true)
+~~~
+pomegranate.MigrateForwardTo(name, db, migrations.All, true)
+~~~
 
 `MigrateBackwardTo` and `GetMigrationHistory` functions are also available.
 
 #### A complete example
 
-Here's the complete file layout of a simple project that uses Pomegranate:
+Here's the complete file layout of an extremely simple project that uses Pomegranate:
 
     tree
     .
@@ -218,23 +220,18 @@ In that example, my_awesome_app.go looks like this:
       pomegranate.MigrateForwardTo("", db, migrations.All, true)
     }
 
-
 Given the above, you can build my_awesome_app like so:
-
 
     $ cd migrations
     $ pmg ingest
     Migrations written to migrations.go
     $ cd ..
     $ go build
-    $ ./my_awesome_app 
-    Connecting to database 'postgres' on host ''
-    No migrations to run
-    $ e my_awesome_app.go 
-    $ go build
 
 And run it like so:
 
+    $ psql -c "CREATE DATABASE awesome_app"
+    CREATE DATABASE
     $ ./my_awesome_app 
     Connecting to database 'awesome_app' on host ''
     Forward migrations that will be run:
