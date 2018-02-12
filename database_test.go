@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"net"
 	"net/url"
 	"os"
 	"testing"
@@ -64,16 +63,11 @@ func TestSimpleConnect(t *testing.T) {
 		simpleURL = "postgres://postgres@/postgres?sslmode=disable"
 	}
 	db, err := Connect(simpleURL)
-	fmt.Println("db", db)
-	fmt.Println("err", err)
-	if err != nil {
-		operr := err.(*net.OpError)
-		fmt.Println("syscallerr", operr.Err)
-	}
-	assert.Equal(t, "", err.Error())
+	assert.Equal(t, nil, err)
 	defer db.Close()
 	var result int
 	err = db.QueryRow("SELECT 1").Scan(&result)
+	fmt.Println("err", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, result)
 }
