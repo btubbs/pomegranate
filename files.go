@@ -15,7 +15,7 @@ import (
 
 // IngestMigrations reads all the migrations in the given directory and writes
 // them to a Go source file in the same directory.  The generateTag argument
-// determins whether the new Go file will contain a "//go:generate" comment to
+// determines whether the new Go file will contain a "//go:generate" comment to
 // tag it for automatic regeneration by "go generate".
 func IngestMigrations(dir, goFile, packageName string, generateTag bool) error {
 	migs, err := ReadMigrationFiles(dir)

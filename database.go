@@ -11,6 +11,25 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Connect calls sql.Open for you, specifying the Postgres driver and printing
+// the DB name and host to stdout so you can check that you're connecting to the
+// right place before continuing.
+func Connect(dburl string) (*sql.DB, error) {
+	// Failure to set the DATABASE_URL env var or provide the dburl command line
+	// flag could result in an empty dburl here.  Catch that.
+	if dburl == "" {
+		return nil, errors.New("empty database url provided")
+	}
+	url, err := url.Parse(dburl)
+	if err != nil {
+		return nil, err
+	}
+	// trim leading slash
+	dbname := strings.Trim(url.Path, "/")
+	fmt.Printf("Connecting to database '%s' on host '%s'\n", dbname, url.Host)
+	return sql.Open("postgres", dburl)
+}
+
 // GetMigrationHistory returns the list of migration records stored in the
 // database's migation_history table.  If that table does not exist, it returns
 // an empty list.
@@ -45,17 +64,6 @@ func GetMigrationHistory(db *sql.DB) ([]MigrationRecord, error) {
 		pastMigrations = append(pastMigrations, pm)
 	}
 	return pastMigrations, nil
-}
-
-func runMigrationSQL(db *sql.DB, name, sqlToRun string) error {
-	fmt.Printf("Running %s... ", name)
-	_, err := db.Exec(sqlToRun)
-	if err != nil {
-		fmt.Println("Failure :(")
-		return fmt.Errorf("error: %v", err)
-	}
-	fmt.Println("Success!")
-	return nil
 }
 
 // MigrateBackwardTo will run backward migrations starting with the most recent
@@ -137,21 +145,13 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 	return nil
 }
 
-// Connect calls sql.Open for you, specifying the Postgres driver and printing
-// the DB name and host to stdout so you can check that you're connecting to the
-// right place before continuing.
-func Connect(dburl string) (*sql.DB, error) {
-	// Failure to set the DATABASE_URL env var or provide the dburl command line
-	// flag could result in an empty dburl here.  Catch that.
-	if dburl == "" {
-		return nil, errors.New("empty database url provided")
-	}
-	url, err := url.Parse(dburl)
+func runMigrationSQL(db *sql.DB, name, sqlToRun string) error {
+	fmt.Printf("Running %s... ", name)
+	_, err := db.Exec(sqlToRun)
 	if err != nil {
-		return nil, err
+		fmt.Println("Failure :(")
+		return fmt.Errorf("error: %v", err)
 	}
-	// trim leading slash
-	dbname := strings.Trim(url.Path, "/")
-	fmt.Printf("Connecting to database '%s' on host '%s'\n", dbname, url.Host)
-	return sql.Open("postgres", dburl)
+	fmt.Println("Success!")
+	return nil
 }
