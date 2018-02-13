@@ -163,6 +163,26 @@ func main() {
 				return nil
 			},
 		},
+		{
+			Name:  "log",
+			Usage: "show the migration log",
+			Flags: []cli.Flag{dbFlag},
+			Action: func(c *cli.Context) error {
+				db, err := pomegranate.Connect(c.String("dburl"))
+				if err != nil {
+					return cli.NewExitError(err, 1)
+				}
+				migs, err := pomegranate.GetMigrationLog(db)
+				w := new(tabwriter.Writer)
+				w.Init(os.Stdout, 5, 0, 1, ' ', tabwriter.Debug)
+				fmt.Fprintln(w, "ID\t TIME\t NAME\t OP\t WHO")
+				for _, m := range migs {
+					fmt.Fprintf(w, "%d\t %s\t %s\t %s\t %s\n", m.ID, m.Time, m.Name, m.Op, m.Who)
+				}
+				w.Flush()
+				return nil
+			},
+		},
 	}
 	app.Run(os.Args)
 }
