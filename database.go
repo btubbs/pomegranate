@@ -157,7 +157,7 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 		return nil
 	}
 	if !nameInMigrationList(name, forwardMigrations) {
-		return fmt.Errorf("migration '%s' not in list of un-run migrations")
+		return fmt.Errorf("migration '%s' not in list of un-run migrations", name)
 	}
 	// trim forwardMigrations later than name
 	toRun, err := trimMigrationsTail(name, forwardMigrations)
