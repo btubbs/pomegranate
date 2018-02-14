@@ -37,5 +37,5 @@ install:
 
 # commented out until https://github.com/h12w/gosweep/pull/15 is resolved or
 # pomegranate is added to coveralls.io
-#script:
-  #- bash ${GOPATH}/src/github.com/h12w/gosweep/gosweep.sh
+script:
+  - bash ${GOPATH}/src/github.com/h12w/gosweep/gosweep.sh
