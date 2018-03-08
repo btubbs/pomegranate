@@ -86,6 +86,32 @@ func trimMigrationsTail(newtail string, migrations []Migration) ([]Migration, er
 	return nil, fmt.Errorf("migration %s not found", newtail)
 }
 
+// getForwardMigrationsToRun returns all the forward migrations that have not yet been run, up to
+// and including the one named in the first argument.
+func getForwardMigrationsToRun(name string, state []MigrationRecord, allMigrations []Migration) ([]Migration, error) {
+	if len(allMigrations) == 0 {
+		return nil, errors.New("no migrations provided")
+	}
+	if nameInState(name, state) {
+		return nil, fmt.Errorf("migration '%s' has already been run", name)
+	}
+	if name == "" {
+		name = allMigrations[len(allMigrations)-1].Name
+	}
+	forwardMigrations, err := getForwardMigrations(state, allMigrations)
+	if err != nil {
+		return nil, err
+	}
+	if len(forwardMigrations) == 0 {
+		return []Migration{}, nil
+	}
+	if !nameInMigrationList(name, forwardMigrations) {
+		return nil, fmt.Errorf("migration '%s' not in list of un-run migrations")
+	}
+	// trim forwardMigrations later than name
+	return trimMigrationsTail(name, forwardMigrations)
+}
+
 // getMigrationsToReverse takes the name that you're rolling back to, state of
 // all migrations run so far, and an ordered list of all possible migrations.
 func getMigrationsToReverse(name string, state []MigrationRecord, allMigrations []Migration) ([]Migration, error) {

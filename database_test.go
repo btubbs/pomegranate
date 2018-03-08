@@ -255,6 +255,16 @@ func TestMigrateFailure(t *testing.T) {
 	)
 }
 
+func TestFakeMigrateForwardTo(t *testing.T) {
+	db, cleanup := freshDB()
+	defer cleanup()
+	err := MigrateForwardTo("00001_init", db, goodMigrations, false)
+	assert.Nil(t, err)
+	err = FakeMigrateForwardTo("", db, goodMigrations, false)
+	state, _ := GetMigrationState(db)
+	assert.Equal(t, goodMigrations[len(goodMigrations)-1].Name, state[len(state)-1].Name)
+}
+
 func namesToState(names []string) []MigrationRecord {
 	migs := []MigrationRecord{}
 	for _, name := range names {

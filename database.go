@@ -134,35 +134,22 @@ func MigrateBackwardTo(name string, db *sql.DB, allMigrations []Migration, confi
 	return nil
 }
 
-// MigrateForwardTo will run all forward migrations that have not yet been run,
-// up to and including the one specified by `name`.
-// To run all un-run migrations, set `name` to an empty string.
+// MigrateForwardTo will run all forward migrations that have not yet been run, up to and including
+// the one specified by `name`.  To run all un-run migrations, set `name` to an empty string.
 func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confirm bool) error {
-	if len(allMigrations) == 0 {
-		return errors.New("no migrations provided")
-	}
 	state, err := GetMigrationState(db)
 	if err != nil {
 		return fmt.Errorf("could not get migration state: %v", err)
 	}
-	if nameInState(name, state) {
-		return fmt.Errorf("migration '%s' has already been run", name)
-	}
-	if name == "" {
-		name = allMigrations[len(allMigrations)-1].Name
-	}
-	forwardMigrations, err := getForwardMigrations(state, allMigrations)
-	if len(forwardMigrations) == 0 {
-		fmt.Println("No migrations to run")
-		return nil
-	}
-	if !nameInMigrationList(name, forwardMigrations) {
-		return fmt.Errorf("migration '%s' not in list of un-run migrations")
-	}
-	// trim forwardMigrations later than name
-	toRun, err := trimMigrationsTail(name, forwardMigrations)
+
+	toRun, err := getForwardMigrationsToRun(name, state, allMigrations)
 	if err != nil {
 		return err
+	}
+
+	if len(toRun) == 0 {
+		fmt.Println("No migrations to run")
+		return nil
 	}
 	if confirm {
 		if err := getConfirm(toRun, "Forward", os.Stdin); err != nil {
@@ -187,5 +174,37 @@ func runMigrationSQL(db *sql.DB, name, sqlToRun string) error {
 		return fmt.Errorf("error: %v", err)
 	}
 	fmt.Println("Success!")
+	return nil
+}
+
+// MigrateForwardTo will record all forward migrations that have not yet been run in the
+// migration_state table, up to and including the one specified by `name`, without actually running
+// their ForwardSQL. To fake all un-run migrations, set `name` to an empty string.
+func FakeMigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confirm bool) error {
+	state, err := GetMigrationState(db)
+	if err != nil {
+		return fmt.Errorf("could not get migration state: %v", err)
+	}
+
+	toRun, err := getForwardMigrationsToRun(name, state, allMigrations)
+	if err != nil {
+		return err
+	}
+	if len(toRun) == 0 {
+		fmt.Println("No migrations to fake")
+		return nil
+	}
+	if confirm {
+		if err := getConfirm(toRun, "Forward", os.Stdin); err != nil {
+			return err
+		}
+	}
+	for _, m := range toRun {
+		fmt.Printf("Faking %s... ", m.Name)
+		_, err := db.Exec("INSERT INTO migration_state (name) VALUES ($1)", m.Name)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
