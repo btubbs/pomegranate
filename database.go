@@ -170,7 +170,7 @@ func runMigrationSQL(db *sql.DB, name, sqlToRun string) error {
 	_, err := db.Exec(sqlToRun)
 	if err != nil {
 		fmt.Println("Failure :(")
-		return fmt.Errorf("error: %v", err)
+		return fmt.Errorf("error running migration: %v", err)
 	}
 	fmt.Println("Success!")
 	return nil
@@ -202,8 +202,11 @@ func FakeMigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, co
 		fmt.Printf("Faking %s... ", m.Name)
 		_, err := db.Exec("INSERT INTO migration_state (name) VALUES ($1)", m.Name)
 		if err != nil {
+			fmt.Println("Failure :(")
+			return fmt.Errorf("error faking migration: %v", err)
 			return err
 		}
+		fmt.Println("Success!")
 	}
 	return nil
 }

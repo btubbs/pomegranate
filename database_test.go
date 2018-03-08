@@ -227,7 +227,7 @@ func TestMigrateBackwardTo(t *testing.T) {
 	err = MigrateBackwardTo(goodMigrations[0].Name, db, goodMigrations, false)
 	assert.Equal(t,
 		errors.New(
-			"error: pq: Will not roll back 00001_init.  You must manually drop the migration_state and migration_log tables."),
+			"error running migration: pq: Will not roll back 00001_init.  You must manually drop the migration_state and migration_log tables."),
 		err,
 	)
 }
@@ -237,7 +237,7 @@ func TestMigrateFailure(t *testing.T) {
 	defer cleanup()
 	err := MigrateForwardTo("", db, badMigrations, false)
 	assert.Equal(t,
-		errors.New("error: pq: division by zero"),
+		errors.New("error running migration: pq: division by zero"),
 		err,
 	)
 	// the error will have left the DB in a mid-transaction state.  Reset it so we
