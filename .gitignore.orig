@@ -2,6 +2,9 @@ bin/*
 tmp/
 pmg
 coverage.out
+<<<<<<< HEAD
+vendor/*
+=======
 
 vendor/
 
@@ -32,3 +35,4 @@ _testmain.go
 *.exe
 *.test
 *.prof
+>>>>>>> 318a6bdf3d9d3920cf08c0140dcee59c2f08cd3f

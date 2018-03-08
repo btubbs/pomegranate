@@ -2,7 +2,7 @@
 
 all: tests 
 
-bin/pomegranate: cmd/main.go
+bin/pmg: cmd/pmg.go
 	go build -o $@ $<
 
 tests:
