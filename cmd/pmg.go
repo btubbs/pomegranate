@@ -118,6 +118,32 @@ func main() {
 			},
 		},
 		{
+			Name:  "fakeforwardto",
+			Usage: "Fake migrating forward to specified migration",
+			Flags: []cli.Flag{dirFlag, dbFlag},
+			Action: func(c *cli.Context) error {
+				migrateTo, err := getArg(c, 0, "migration name")
+				if err != nil {
+					return cli.NewExitError(err, 1)
+				}
+				db, err := pomegranate.Connect(c.String("dburl"))
+				if err != nil {
+					return cli.NewExitError(err, 1)
+				}
+				dir := c.String("dir")
+				allMigrations, err := pomegranate.ReadMigrationFiles(dir)
+				if err != nil {
+					return cli.NewExitError(err, 1)
+				}
+				err = pomegranate.FakeMigrateForwardTo(migrateTo, db, allMigrations, true)
+				if err != nil {
+					return cli.NewExitError(err, 1)
+				}
+				fmt.Println("Done")
+				return nil
+			},
+		},
+		{
 			Name:  "backwardto",
 			Usage: "Migrate backward to specified migration",
 			Flags: []cli.Flag{dirFlag, dbFlag},
