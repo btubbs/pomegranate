@@ -93,7 +93,8 @@ func getForwardMigrationsToRun(name string, state []MigrationRecord, allMigratio
 		return nil, errors.New("no migrations provided")
 	}
 	if nameInState(name, state) {
-		return nil, fmt.Errorf("migration '%s' has already been run", name)
+		fmt.Printf("migration '%s' has already been run\n", name)
+		return []Migration{}, nil
 	}
 	if name == "" {
 		name = allMigrations[len(allMigrations)-1].Name

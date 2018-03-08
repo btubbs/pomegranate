@@ -146,7 +146,6 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 	if err != nil {
 		return err
 	}
-
 	if len(toRun) == 0 {
 		fmt.Println("No migrations to run")
 		return nil
