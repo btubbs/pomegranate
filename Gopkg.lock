@@ -10,10 +10,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "oid"
-  ]
+  packages = [".","oid"]
   revision = "88edab0803230a3898347e77b474f8c1820a1f20"
 
 [[projects]]

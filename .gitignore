@@ -1,6 +1,5 @@
 bin/*
 tmp/
-pmg
 coverage.out
 
 vendor/
