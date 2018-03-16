@@ -38,10 +38,7 @@ func InitMigration(dir string) error {
 	forwardSQL := fmt.Sprintf(initForwardTmpl, name)
 	backwardSQL := fmt.Sprintf(initBackwardTmpl, name)
 	err := writeStubs(dir, name, forwardSQL, backwardSQL)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // NewMigration creates a new directory containing forward.sql and backward.sql

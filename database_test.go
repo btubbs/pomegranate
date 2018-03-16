@@ -34,7 +34,7 @@ func freshDB() (*sql.DB, func()) {
 
 	newURL, _ := url.Parse(dburl)
 	newURL.Path = "/" + name
-	url := fmt.Sprintf(newURL.String())
+	url := newURL.String()
 	db, _ := sql.Open("postgres", url)
 	cleanup := func() {
 		db.Close()
@@ -79,7 +79,7 @@ func TestConnect(t *testing.T) {
 		{
 			dbname: "badurl",
 			dburl:  ":",
-			err:    &url.Error{"parse", ":", errors.New("missing protocol scheme")},
+			err:    &url.Error{Op: "parse", URL: ":", Err: errors.New("missing protocol scheme")},
 		},
 	}
 

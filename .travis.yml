@@ -3,10 +3,7 @@ language: go
 cache:
   directories:
     - ${GOPATH}/src/github.com/${TRAVIS_REPO_SLUG}/vendor
-    - ${GOPATH}/src/github.com/fzipp
     - ${GOPATH}/src/github.com/golang
-    - ${GOPATH}/src/github.com/gordonklaus
-    - ${GOPATH}/src/github.com/h12w
     - ${GOPATH}/src/github.com/mattn
     - ${GOPATH}/src/golang.org/x
 go:
@@ -16,26 +13,9 @@ go:
 sudo: false
 
 services:
-  - postgresql    
+  - postgresql
 addons:
   postgresql: "9.6"    
 
-env:
-    CI_SERVICE=travis-ci
-
-install:
-  - go get -v -u github.com/client9/misspell/cmd/misspell
-  - go get -v -u github.com/fzipp/gocyclo
-  - go get -v -u github.com/golang/dep/cmd/dep
-  - go get -v -u github.com/golang/lint/golint
-  - go get -v -u github.com/gordonklaus/ineffassign
-  - go get -v -u github.com/h12w/gosweep
-  - go get -v -u github.com/mattn/goveralls
-  - go get -v -u github.com/golang/dep/cmd/dep
-  - go get -v -u golang.org/x/tools/cmd/goimports
-  - dep ensure
-
-# commented out until https://github.com/h12w/gosweep/pull/15 is resolved or
-# pomegranate is added to coveralls.io
 script:
-  - bash ${GOPATH}/src/github.com/h12w/gosweep/gosweep.sh
+  - make ci
