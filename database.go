@@ -204,7 +204,6 @@ func FakeMigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, co
 		if err != nil {
 			fmt.Println("Failure :(")
 			return fmt.Errorf("error faking migration: %v", err)
-			return err
 		}
 		fmt.Println("Success!")
 	}
