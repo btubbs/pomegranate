@@ -107,7 +107,7 @@ func getForwardMigrationsToRun(name string, state []MigrationRecord, allMigratio
 		return []Migration{}, nil
 	}
 	if !nameInMigrationList(name, forwardMigrations) {
-		return nil, fmt.Errorf("migration '%s' not in list of un-run migrations")
+		return nil, fmt.Errorf("migration '%s' not in list of un-run migrations", name)
 	}
 	// trim forwardMigrations later than name
 	return trimMigrationsTail(name, forwardMigrations)

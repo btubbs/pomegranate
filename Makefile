@@ -2,7 +2,7 @@
 
 all: tests 
 
-bin/pmg: cmd/pmg.go
+bin/pmg: pmg/pmg.go
 	go build -o $@ $<
 
 tests:

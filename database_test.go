@@ -261,6 +261,7 @@ func TestFakeMigrateForwardTo(t *testing.T) {
 	err := MigrateForwardTo("00001_init", db, goodMigrations, false)
 	assert.Nil(t, err)
 	err = FakeMigrateForwardTo("", db, goodMigrations, false)
+	assert.Nil(t, err)
 	state, _ := GetMigrationState(db)
 	assert.Equal(t, goodMigrations[len(goodMigrations)-1].Name, state[len(state)-1].Name)
 }
