@@ -14,12 +14,16 @@ dep: $(GOBIN)/dep
 tests: dep
 	go test .
 
-viewcoverage: dep
-	go test -coverprofile=coverage.out
-	go tool cover -html=coverage.out
+profile.cov:
+	go test -coverprofile=$@
+
+viewcoverage: profile.cov 
+	go tool cover -html=$<
+
+vet:
+	go vet $(GOLIST)
 
 check: $(GOBIN)/megacheck
-	go vet $(GOLIST)
 	$(GOBIN)/megacheck $(GOLIST)
 
 $(GOBIN)/megacheck:
@@ -31,5 +35,5 @@ $(GOBIN)/goveralls:
 $(GOBIN)/dep:
 	go get -v -u github.com/golang/dep/cmd/dep
 
-ci: dep check $(GOBIN)/goveralls
-	goveralls -service=travis-ci
+ci: profile.cov vet check $(GOBIN)/goveralls
+	$(GOBIN)/goveralls -coverprofile=$< -service=travis-ci

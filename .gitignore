@@ -1,6 +1,6 @@
 bin/*
 tmp/
-coverage.out
+profile.cov
 
 vendor/
 
