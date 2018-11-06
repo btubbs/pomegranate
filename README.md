@@ -29,6 +29,7 @@ You can use Pomegranate in two ways:
 
 1. As a standalone command line tool (`pmg`).
 2. As a library (`github.com/btubbs/pomegranate`) in your own Go project.
+3. Use `ts` flag if you prefer to use timestamps over auto-incrementing integers.
 
 ### Using `pmg`
 #### Create initial migration
@@ -36,7 +37,7 @@ You can use Pomegranate in two ways:
 Use the `pmg init` command to create your first migration, which will be
 responsible for creating the `migration_state` table.  It will create the
 migration in the current directory, or you can specify a different one with the
-`--dir` option.
+`--dir` option.  You can also use the `--ts` option to use timestamps.
 
 
     $ pmg init
@@ -55,7 +56,8 @@ command:
 
 Note that the `00002` prefix has been prepended to the name you provided.
 Migrations are run in the order they appear in the file system.  The auto
-numbering ensures that this ordering is consistent.
+numbering ensures that this ordering is consistent.  You can also use the `--ts`
+option to use timestamps.
 
 As with `init`, the `new` command creates `forward.sql` and `backward.sql`
 files.  Unlike `init`, these are just stubs.  You will need to edit these files

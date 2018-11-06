@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -24,6 +25,23 @@ func TestWriteInitMigration(t *testing.T) {
 	assert.Contains(t,
 		string(b),
 		"Will not roll back 00001_init.",
+	)
+}
+
+func TestWriteInitMigrationTimestamp(t *testing.T) {
+	dir, _ := ioutil.TempDir(".", "pmgtest")
+	defer os.RemoveAll(dir)
+	err := InitMigrationTimestamp(dir, time.Date(2018, 11, 6, 12, 34, 56, 0, time.UTC))
+	assert.Nil(t, err)
+	f, _ := ioutil.ReadFile(path.Join(dir, "20181106123456_init", "forward.sql"))
+	assert.Contains(t,
+		string(f),
+		"INSERT INTO migration_state(name) VALUES ('20181106123456_init');",
+	)
+	b, _ := ioutil.ReadFile(path.Join(dir, "20181106123456_init", "backward.sql"))
+	assert.Contains(t,
+		string(b),
+		"Will not roll back 20181106123456_init.",
 	)
 }
 
@@ -66,20 +84,43 @@ func TestAutoNumber(t *testing.T) {
 	)
 }
 
+func TestNewMigrationTimestamp(t *testing.T) {
+	dir, _ := ioutil.TempDir(".", "pmgtest")
+	defer os.RemoveAll(dir)
+	name := "foo"
+	err := NewMigrationTimestamp(dir, name, time.Date(2018, 11, 6, 12, 34, 56, 0, time.UTC))
+	assert.Nil(t, err)
+	f, _ := ioutil.ReadFile(path.Join(dir, "20181106123456_foo", "forward.sql"))
+	assert.Contains(t,
+		string(f),
+		"INSERT INTO migration_state(name) VALUES ('20181106123456_foo');",
+	)
+	b, _ := ioutil.ReadFile(path.Join(dir, "20181106123456_foo", "backward.sql"))
+	assert.Contains(t,
+		string(b),
+		"DELETE FROM migration_state WHERE name='20181106123456_foo';",
+	)
+}
+
 func TestReadMigrations(t *testing.T) {
 	dir, _ := ioutil.TempDir(".", "pmgtest")
 	defer os.RemoveAll(dir)
 	m1 := path.Join(dir, "00001_foo")
 	m2 := path.Join(dir, "00002_bar")
 	m3 := path.Join(dir, "other_dir") // should be excluded from results
+	m4 := path.Join(dir, "20181106123456_baz")
 	os.Mkdir(m1, 0755)
 	os.Mkdir(m2, 0755)
+	os.Mkdir(m3, 0755)
+	os.Mkdir(m4, 0755)
 	ioutil.WriteFile(path.Join(m1, "forward.sql"), []byte("m1 forward"), 0644)
 	ioutil.WriteFile(path.Join(m1, "backward.sql"), []byte("m1 backward"), 0644)
 	ioutil.WriteFile(path.Join(m2, "forward.sql"), []byte("m2 forward"), 0644)
 	ioutil.WriteFile(path.Join(m2, "backward.sql"), []byte("m2 backward"), 0644)
 	ioutil.WriteFile(path.Join(m3, "forward.sql"), []byte("m3 forward"), 0644)
 	ioutil.WriteFile(path.Join(m3, "backward.sql"), []byte("m3 backward"), 0644)
+	ioutil.WriteFile(path.Join(m4, "forward.sql"), []byte("m4 forward"), 0644)
+	ioutil.WriteFile(path.Join(m4, "backward.sql"), []byte("m4 backward"), 0644)
 
 	expected := []Migration{
 		Migration{
@@ -91,6 +132,11 @@ func TestReadMigrations(t *testing.T) {
 			Name:        "00002_bar",
 			ForwardSQL:  "m2 forward",
 			BackwardSQL: "m2 backward",
+		},
+		Migration{
+			Name:        "20181106123456_baz",
+			ForwardSQL:  "m4 forward",
+			BackwardSQL: "m4 backward",
 		},
 	}
 	migs, err := ReadMigrationFiles(dir)

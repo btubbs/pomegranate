@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/btubbs/pomegranate"
 	cli "gopkg.in/urfave/cli.v1"
@@ -29,17 +30,28 @@ func main() {
 		Usage:  "database url",
 		EnvVar: "DATABASE_URL",
 	}
+	timestampFlag := cli.BoolFlag{
+		Name:  "ts",
+		Usage: "To use timestamps for the number part of the migration name",
+	}
 
 	app.Commands = []cli.Command{
 		{
 			Name:  "init",
 			Usage: "create initial migration",
-			Flags: []cli.Flag{dirFlag},
+			Flags: []cli.Flag{dirFlag, timestampFlag},
 			Action: func(c *cli.Context) error {
 				dir := c.String("dir")
-				err := pomegranate.InitMigration(dir)
-				if err != nil {
-					return cli.NewExitError(err, 1)
+				if c.Bool("ts") {
+					err := pomegranate.InitMigrationTimestamp(dir, time.Now().UTC())
+					if err != nil {
+						return cli.NewExitError(err, 1)
+					}
+				} else {
+					err := pomegranate.InitMigration(dir)
+					if err != nil {
+						return cli.NewExitError(err, 1)
+					}
 				}
 				return nil
 			},
@@ -47,7 +59,7 @@ func main() {
 		{
 			Name:  "new",
 			Usage: "create new (not initial) migration with given name",
-			Flags: []cli.Flag{dirFlag},
+			Flags: []cli.Flag{dirFlag, timestampFlag},
 			Action: func(c *cli.Context) error {
 				name, err := getArg(c, 0, "migration name")
 				if err != nil {
@@ -57,9 +69,16 @@ func main() {
 					return cli.NewExitError("empty name not permitted", 1)
 				}
 				dir := c.String("dir")
-				err = pomegranate.NewMigration(dir, name)
-				if err != nil {
-					return cli.NewExitError(err, 1)
+				if c.Bool("ts") {
+					err = pomegranate.NewMigrationTimestamp(dir, name, time.Now().UTC())
+					if err != nil {
+						return cli.NewExitError(err, 1)
+					}
+				} else {
+					err = pomegranate.NewMigration(dir, name)
+					if err != nil {
+						return cli.NewExitError(err, 1)
+					}
 				}
 				return nil
 			},

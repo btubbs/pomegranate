@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 )
 
 // IngestMigrations reads all the migrations in the given directory and writes
@@ -41,6 +42,24 @@ func InitMigration(dir string) error {
 	return err
 }
 
+// InitMigrationTimestamp creates a new {timestamp}_init migration in the given
+// directory. This migration will contain the SQL commands necessary to create
+// the `migration_state` table.
+func InitMigrationTimestamp(dir string, timestamp time.Time) error {
+	intTimestamp, err := strconv.Atoi(timestamp.Format(timestampFormat))
+	if err != nil {
+		return fmt.Errorf("error creating timestamp on init migration: %v", err)
+	}
+	name := makeStubName(intTimestamp, "init")
+	forwardSQL := fmt.Sprintf(initForwardTmpl, name)
+	backwardSQL := fmt.Sprintf(initBackwardTmpl, name)
+	err = writeStubs(dir, name, forwardSQL, backwardSQL)
+	if err != nil {
+		return fmt.Errorf("error making init migration: %v", err)
+	}
+	return nil
+}
+
 // NewMigration creates a new directory containing forward.sql and backward.sql
 // stubs.  The directory created will use the name provided to the function,
 // prepended by an auto-incrementing zero-padded number.
@@ -54,6 +73,25 @@ func NewMigration(dir, name string) error {
 		return fmt.Errorf("error making new migration: %v", err)
 	}
 	newName := makeStubName(latestNum+1, name)
+	forwardSQL := fmt.Sprintf(forwardTmpl, newName)
+	backwardSQL := fmt.Sprintf(backwardTmpl, newName)
+	err = writeStubs(dir, newName, forwardSQL, backwardSQL)
+	if err != nil {
+		return fmt.Errorf("error making new migration: %v", err)
+	}
+	return nil
+}
+
+// NewMigrationTimestamp creates a new directory containing forward.sql and
+// backward.sql stubs.  The directory created will use the name provided to the
+// function, prepended by a timestamp formatted with `YYYYMMDDhhmmss`
+// (i.e. `20060102150405`).
+func NewMigrationTimestamp(dir, name string, timestamp time.Time) error {
+	intTimestamp, err := strconv.Atoi(timestamp.Format(timestampFormat))
+	if err != nil {
+		return fmt.Errorf("error creating timestamp on new migration: %v", err)
+	}
+	newName := makeStubName(intTimestamp, name)
 	forwardSQL := fmt.Sprintf(forwardTmpl, newName)
 	backwardSQL := fmt.Sprintf(backwardTmpl, newName)
 	err = writeStubs(dir, newName, forwardSQL, backwardSQL)
@@ -184,7 +222,7 @@ func zeroPad(num, digits int) string {
 }
 
 func isMigration(dir string) bool {
-	pat := fmt.Sprintf(`^[\d]{%d}_.*$`, leadingDigits)
+	pat := fmt.Sprintf(`^[\d]{%d,}_.*$`, leadingDigits)
 	match, err := regexp.MatchString(pat, dir)
 	if err != nil {
 		return false
