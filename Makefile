@@ -9,12 +9,12 @@ bin/pmg: pmg/pmg.go
 	go build -o $@ $<
 
 dep: $(GOBIN)/dep
-	$(GOBIN)/dep ensure
+	$(GOBIN)/dep ensure -v
 
 tests: dep
 	go test .
 
-profile.cov:
+profile.cov: dep
 	go test -coverprofile=$@
 
 viewcoverage: profile.cov 
@@ -36,5 +36,4 @@ $(GOBIN)/dep:
 	go get -v -u github.com/golang/dep/cmd/dep
 
 ci: profile.cov vet check $(GOBIN)/goveralls
-	dep ensure -v
 	$(GOBIN)/goveralls -coverprofile=$< -service=travis-ci
