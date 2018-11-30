@@ -389,6 +389,22 @@ DELETE FROM migration_state WHERE name='00004_fooquux';
 COMMIT;
 `,
 	},
+	{
+		Name: "00005_seperate",
+		ForwardSQL: `
+		CREATE TABLE quuxConcurrent  (
+		id SERIAL PRIMARY KEY,
+		time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+		);
+		CREATE INDEX CONCURRENTLY idx_id on quuxConcurrent(id);
+		INSERT INTO migration_state(name) VALUES ('00005_seperate');`,
+		BackwardSQL: `BEGIN;
+		DROP TABLE quuxConcurrent;
+		DELETE FROM migration_state WHERE name='00005_seperate';
+		COMMIT;
+		`,
+		SeparateForwardStatements: true,
+	},
 }
 
 var badMigrations = []Migration{

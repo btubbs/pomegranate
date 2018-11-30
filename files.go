@@ -189,6 +189,12 @@ func readMigration(dir, name string) (Migration, error) {
 	}
 	m.ForwardSQL = string(fwd)
 	m.BackwardSQL = string(back)
+
+	if strings.Contains(m.ForwardSQL, separateFlag) {
+		m.SeparateForwardStatements = true
+		m.ForwardSQL = strings.Replace(m.ForwardSQL, separateFlag, "", -1)
+	}
+
 	return m, nil
 }
 

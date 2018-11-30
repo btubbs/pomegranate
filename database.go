@@ -126,7 +126,7 @@ func MigrateBackwardTo(name string, db *sql.DB, allMigrations []Migration, confi
 	}
 	// run the migrations
 	for _, mig := range toRun {
-		err = runMigrationSQL(db, mig.Name, mig.BackwardSQL)
+		err = runMigrationSQL(db, mig.Name, mig.BackwardSQL, mig.SeparateForwardStatements)
 		if err != nil {
 			return err
 		}
@@ -157,7 +157,7 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 	}
 	// run migrations
 	for _, mig := range toRun {
-		err = runMigrationSQL(db, mig.Name, mig.ForwardSQL)
+		err = runMigrationSQL(db, mig.Name, mig.ForwardSQL, mig.SeparateForwardStatements)
 		if err != nil {
 			return err
 		}
@@ -165,12 +165,23 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 	return nil
 }
 
-func runMigrationSQL(db *sql.DB, name, sqlToRun string) error {
+func runMigrationSQL(db *sql.DB, name, sqlToRun string, seperate bool) error {
 	fmt.Printf("Running %s... ", name)
-	_, err := db.Exec(sqlToRun)
-	if err != nil {
-		fmt.Println("Failure :(")
-		return fmt.Errorf("error running migration: %v", err)
+	if !seperate {
+		_, err := db.Exec(sqlToRun)
+		if err != nil {
+			fmt.Println("Failure :(")
+			return fmt.Errorf("error running migration: %v", err)
+		}
+	} else {
+		statementArr := strings.Split(sqlToRun, ";")
+		for _, sqlToRun := range statementArr {
+			_, err := db.Exec(sqlToRun)
+			if err != nil {
+				fmt.Println("Failure :(")
+				return fmt.Errorf("error running migration: %v", err)
+			}
+		}
 	}
 	fmt.Println("Success!")
 	return nil

@@ -20,10 +20,12 @@ type MigrationRecord struct {
 
 // Migration contains the name and SQL for a migration.  Arrays of Migrations
 // are passed between many functions in the Pomegranate source.
+// SeperateForwardStatements runs SQL statements seperately, delinieated by ";"
 type Migration struct {
-	Name        string
-	ForwardSQL  string
-	BackwardSQL string
+	Name                      string
+	ForwardSQL                string
+	BackwardSQL               string
+	SeparateForwardStatements bool
 }
 
 // QuotedForward returns the ForwardSQL field of the Migration, surrounded with
