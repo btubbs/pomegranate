@@ -6,7 +6,9 @@
 // explanations.
 package pomegranate
 
-import "time"
+import (
+	"time"
+)
 
 // MigrationRecord provides information on which migrations are currently in effect.  An array of
 // MigrationRecords is referred to as a "state" throughout the Pomegranate source.  These are
@@ -22,22 +24,29 @@ type MigrationRecord struct {
 // are passed between many functions in the Pomegranate source.
 // SeperateForwardStatements runs SQL statements seperately, delinieated by ";"
 type Migration struct {
-	Name                      string
-	ForwardSQL                string
-	BackwardSQL               string
-	SeparateForwardStatements bool
+	Name        string
+	ForwardSQL  []string
+	BackwardSQL []string
 }
 
-// QuotedForward returns the ForwardSQL field of the Migration, surrounded with
-// backticks for easy injection into a migrations.go template.
-func (m Migration) QuotedForward() string {
-	return "`" + m.ForwardSQL + "`"
+//QuotedForward returns the ForwardSQL field of the Migration, surrounded with
+//backticks for easy injection into a migrations.go template.
+func (m Migration) QuotedForward() []string {
+	fwdSQLArr := []string{}
+	for _, sql := range m.ForwardSQL {
+		fwdSQLArr = append(fwdSQLArr, "`"+sql+"`")
+	}
+	return fwdSQLArr
 }
 
 // QuotedBackward returns the BackwardSQL field of the Migration, surrounded with
 // backticks for easy injection into a migrations.go template.
-func (m Migration) QuotedBackward() string {
-	return "`" + m.BackwardSQL + "`"
+func (m Migration) QuotedBackward() []string {
+	bwdSQLArr := []string{}
+	for _, sql := range m.BackwardSQL {
+		bwdSQLArr = append(bwdSQLArr, "`"+sql+"`")
+	}
+	return bwdSQLArr
 }
 
 // MigrationLogRecord represents a specific migration run at a specific point in time.  Unlike

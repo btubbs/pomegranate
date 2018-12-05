@@ -107,9 +107,9 @@ func TestConnect(t *testing.T) {
 func TestGetState(t *testing.T) {
 	db, cleanup := freshDB()
 	defer cleanup()
-	db.Exec(goodMigrations[0].ForwardSQL)
-	db.Exec(goodMigrations[1].ForwardSQL)
-	db.Exec(goodMigrations[2].ForwardSQL)
+	db.Exec(goodMigrations[0].ForwardSQL[0])
+	db.Exec(goodMigrations[1].ForwardSQL[0])
+	db.Exec(goodMigrations[2].ForwardSQL[0])
 
 	state, err := GetMigrationState(db)
 	assert.Nil(t, err)
@@ -128,13 +128,13 @@ func TestGetState(t *testing.T) {
 func TestGetLog(t *testing.T) {
 	db, cleanup := freshDB()
 	defer cleanup()
-	db.Exec(goodMigrations[0].ForwardSQL)
-	db.Exec(goodMigrations[1].ForwardSQL)
-	db.Exec(goodMigrations[2].ForwardSQL)
-	db.Exec(goodMigrations[2].BackwardSQL)
-	db.Exec(goodMigrations[1].BackwardSQL)
-	db.Exec(goodMigrations[1].ForwardSQL)
-	db.Exec(goodMigrations[2].ForwardSQL)
+	db.Exec(goodMigrations[0].ForwardSQL[0])
+	db.Exec(goodMigrations[1].ForwardSQL[0])
+	db.Exec(goodMigrations[2].ForwardSQL[0])
+	db.Exec(goodMigrations[2].BackwardSQL[0])
+	db.Exec(goodMigrations[1].BackwardSQL[0])
+	db.Exec(goodMigrations[1].ForwardSQL[0])
+	db.Exec(goodMigrations[2].ForwardSQL[0])
 
 	log, err := GetMigrationLog(db)
 
@@ -296,7 +296,7 @@ func migsToNames(migs []Migration) []string {
 var goodMigrations = []Migration{
 	{
 		Name: "00001_init",
-		ForwardSQL: `BEGIN;
+		ForwardSQL: []string{`BEGIN;
 CREATE TABLE migration_state (
 	name TEXT NOT NULL,
 	time TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
@@ -335,8 +335,8 @@ CREATE TRIGGER record_migration AFTER INSERT OR UPDATE OR DELETE ON migration_st
 
 INSERT INTO migration_state(name) VALUES ('00001_init');
 COMMIT;
-`,
-		BackwardSQL: `BEGIN;
+`},
+		BackwardSQL: []string{`BEGIN;
 CREATE OR REPLACE FUNCTION no_rollback() RETURNS void AS $$
 BEGIN
   RAISE 'Will not roll back 00001_init.  You must manually drop the migration_state and migration_log tables.';
@@ -345,72 +345,70 @@ $$ LANGUAGE plpgsql;
 
 SELECT no_rollback();
 COMMIT;
-`,
+`},
 	}, {
 		Name: "00002_foobar",
-		ForwardSQL: `BEGIN;
+		ForwardSQL: []string{`BEGIN;
 CREATE TABLE foo (
   id SERIAL NOT NULL,
   stuff TEXT
 );
 INSERT INTO migration_state(name) VALUES ('00002_foobar');
 COMMIT;
-`,
-		BackwardSQL: `BEGIN;
+`},
+		BackwardSQL: []string{`BEGIN;
 DROP TABLE foo;
 DELETE FROM migration_state WHERE name='00002_foobar';
 COMMIT;
-`,
+`},
 	}, {
 		Name: "00003_foobaz",
-		ForwardSQL: `BEGIN;
+		ForwardSQL: []string{`BEGIN;
 ALTER TABLE foo ADD COLUMN bar TEXT;
 INSERT INTO migration_state(name) VALUES ('00003_foobaz');
 COMMIT;
-`,
-		BackwardSQL: `BEGIN;
+`},
+		BackwardSQL: []string{`BEGIN;
 ALTER TABLE foo DROP COLUMN bar;
 DELETE FROM migration_state WHERE name='00003_foobaz';
 COMMIT;
-`,
+`},
 	}, {
 		Name: "00004_fooquux",
-		ForwardSQL: `BEGIN;
+		ForwardSQL: []string{`BEGIN;
 CREATE TABLE quux (
   id SERIAL PRIMARY KEY,
   time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 INSERT INTO migration_state(name) VALUES ('00004_fooquux');
 COMMIT;
-`,
-		BackwardSQL: `BEGIN;
+`},
+		BackwardSQL: []string{`BEGIN;
 DROP TABLE quux;
 DELETE FROM migration_state WHERE name='00004_fooquux';
 COMMIT;
-`,
+`},
 	},
 	{
 		Name: "00005_seperate",
-		ForwardSQL: `
+		ForwardSQL: []string{`
 		CREATE TABLE quuxConcurrent  (
 		id SERIAL PRIMARY KEY,
 		time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
-		);
-		CREATE INDEX CONCURRENTLY idx_id on quuxConcurrent(id);
-		INSERT INTO migration_state(name) VALUES ('00005_seperate');`,
-		BackwardSQL: `BEGIN;
+		);`, `CREATE INDEX CONCURRENTLY idx_id on quuxConcurrent(id);`,
+			`INSERT INTO migration_state(name) VALUES ('00005_seperate');`},
+		BackwardSQL: []string{`BEGIN;
 		DROP TABLE quuxConcurrent;
 		DELETE FROM migration_state WHERE name='00005_seperate';
 		COMMIT;
-		`,
-		SeparateForwardStatements: true,
+		`},
 	},
 }
 
 var badMigrations = []Migration{
 	{
 		Name: "00001_init",
-		ForwardSQL: `BEGIN;
+		ForwardSQL: []string{`BEGIN;
 CREATE TABLE migration_state (
 	name TEXT NOT NULL,
 	time TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
@@ -449,8 +447,8 @@ CREATE TRIGGER record_migration AFTER INSERT OR UPDATE OR DELETE ON migration_st
 
 INSERT INTO migration_state(name) VALUES ('00001_init');
 COMMIT;
-`,
-		BackwardSQL: `BEGIN;
+`},
+		BackwardSQL: []string{`BEGIN;
 CREATE OR REPLACE FUNCTION no_rollback() RETURNS void AS $$
 BEGIN
   RAISE 'Will not roll back 00001_init.  You must manually drop the migration_state and migration_log tables.';
@@ -459,18 +457,18 @@ $$ LANGUAGE plpgsql;
 
 SELECT no_rollback();
 COMMIT;
-`,
+`},
 	}, {
 		Name: "00002_intentional_fail",
-		ForwardSQL: `BEGIN;
+		ForwardSQL: []string{`BEGIN;
 SELECT 1 / 0;
 INSERT INTO migration_state(name) VALUES ('00002_intentional_fail');
 COMMIT;
-`,
-		BackwardSQL: `BEGIN;
+`},
+		BackwardSQL: []string{`BEGIN;
 SELECT 1 / 0;
 DELETE FROM migration_state WHERE name='00002_intentional_fail';
 COMMIT;
-`,
+`},
 	},
 }

@@ -126,7 +126,7 @@ func MigrateBackwardTo(name string, db *sql.DB, allMigrations []Migration, confi
 	}
 	// run the migrations
 	for _, mig := range toRun {
-		err = runMigrationSQL(db, mig.Name, mig.BackwardSQL, mig.SeparateForwardStatements)
+		err = runMigrationSQL(db, mig.Name, mig.BackwardSQL)
 		if err != nil {
 			return err
 		}
@@ -157,7 +157,7 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 	}
 	// run migrations
 	for _, mig := range toRun {
-		err = runMigrationSQL(db, mig.Name, mig.ForwardSQL, mig.SeparateForwardStatements)
+		err = runMigrationSQL(db, mig.Name, mig.ForwardSQL)
 		if err != nil {
 			return err
 		}
@@ -165,29 +165,21 @@ func MigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confir
 	return nil
 }
 
-func runMigrationSQL(db *sql.DB, name, sqlToRun string, seperate bool) error {
+func runMigrationSQL(db *sql.DB, name string, sqlToRun []string) error {
 	fmt.Printf("Running %s... ", name)
-	if !seperate {
-		_, err := db.Exec(sqlToRun)
+	for _, sql := range sqlToRun {
+		_, err := db.Exec(sql)
 		if err != nil {
 			fmt.Println("Failure :(")
 			return fmt.Errorf("error running migration: %v", err)
 		}
-	} else {
-		statementArr := strings.Split(sqlToRun, ";")
-		for _, sqlToRun := range statementArr {
-			_, err := db.Exec(sqlToRun)
-			if err != nil {
-				fmt.Println("Failure :(")
-				return fmt.Errorf("error running migration: %v", err)
-			}
-		}
 	}
+
 	fmt.Println("Success!")
 	return nil
 }
 
-// MigrateForwardTo will record all forward migrations that have not yet been run in the
+// FakeMigrateForwardTo will record all forward migrations that have not yet been run in the
 // migration_state table, up to and including the one specified by `name`, without actually running
 // their ForwardSQL. To fake all un-run migrations, set `name` to an empty string.
 func FakeMigrateForwardTo(name string, db *sql.DB, allMigrations []Migration, confirm bool) error {

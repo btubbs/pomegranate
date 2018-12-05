@@ -2,6 +2,7 @@ package pomegranate
 
 import (
 	"fmt"
+	"go/scanner"
 	"io/ioutil"
 	"os"
 	"path"
@@ -123,33 +124,36 @@ func TestReadMigrations(t *testing.T) {
 	ioutil.WriteFile(path.Join(m3, "backward.sql"), []byte("m3 backward"), 0644)
 	ioutil.WriteFile(path.Join(m4, "forward.sql"), []byte("m4 forward"), 0644)
 	ioutil.WriteFile(path.Join(m4, "backward.sql"), []byte("m4 backward"), 0644)
-	ioutil.WriteFile(path.Join(m5, "forward.sql"), []byte("m5 #SEPERATE#forward"), 0644)
+	ioutil.WriteFile(path.Join(m5, "forward_1.sql"), []byte("m5 forward"), 0644)
+	ioutil.WriteFile(path.Join(m5, "forward_2.sql"), []byte("m5 forward2"), 0644)
 	ioutil.WriteFile(path.Join(m5, "backward.sql"), []byte("m5 backward"), 0644)
 
 	expected := []Migration{
 		Migration{
 			Name:        "00001_foo",
-			ForwardSQL:  "m1 forward",
-			BackwardSQL: "m1 backward",
+			ForwardSQL:  []string{"m1 forward"},
+			BackwardSQL: []string{"m1 backward"},
 		},
 		Migration{
 			Name:        "00002_bar",
-			ForwardSQL:  "m2 forward",
-			BackwardSQL: "m2 backward",
+			ForwardSQL:  []string{"m2 forward"},
+			BackwardSQL: []string{"m2 backward"},
 		},
 		Migration{
-			Name:                      "00005_sos",
-			ForwardSQL:                "m5 forward",
-			BackwardSQL:               "m5 backward",
-			SeparateForwardStatements: true,
+			Name:        "00005_sos",
+			ForwardSQL:  []string{"m5 forward", "m5 forward2"},
+			BackwardSQL: []string{"m5 backward"},
 		},
 		Migration{
 			Name:        "20181106123456_baz",
-			ForwardSQL:  "m4 forward",
-			BackwardSQL: "m4 backward",
+			ForwardSQL:  []string{"m4 forward"},
+			BackwardSQL: []string{"m4 backward"},
 		},
 	}
 	migs, err := ReadMigrationFiles(dir)
+	if err != nil {
+		fmt.Println(err)
+	}
 	assert.Nil(t, err)
 	assert.Equal(t, expected, migs)
 }
@@ -160,6 +164,12 @@ func TestIngestMigrations(t *testing.T) {
 	NewMigration(dir, "foo") // 00001_foo
 	NewMigration(dir, "bar") // 00002_bar
 	err := IngestMigrations(dir, "testmigrations.go", "somepackage", true)
+	if err != nil {
+		errConv := err.(scanner.ErrorList)
+		for _, err1 := range errConv {
+			fmt.Println(err1)
+		}
+	}
 	assert.Nil(t, err)
 	f, _ := ioutil.ReadFile(path.Join(dir, "testmigrations.go"))
 	contents := string(f)
