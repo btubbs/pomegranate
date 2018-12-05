@@ -2,7 +2,6 @@ package pomegranate
 
 import (
 	"fmt"
-	"go/scanner"
 	"io/ioutil"
 	"os"
 	"path"
@@ -165,10 +164,7 @@ func TestIngestMigrations(t *testing.T) {
 	NewMigration(dir, "bar") // 00002_bar
 	err := IngestMigrations(dir, "testmigrations.go", "somepackage", true)
 	if err != nil {
-		errConv := err.(scanner.ErrorList)
-		for _, err1 := range errConv {
-			fmt.Println(err1)
-		}
+		fmt.Println(err)
 	}
 	assert.Nil(t, err)
 	f, _ := ioutil.ReadFile(path.Join(dir, "testmigrations.go"))

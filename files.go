@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -182,6 +183,10 @@ func makeStubName(numPart int, namePart string) string {
 //an array of strings which contains the contents.
 func readFileArray(fileNames []string) ([]string, error) {
 	files := []string{}
+
+	//sort the input array.  This is so fileName_a, fileName _b are sorted in the correct order
+	sort.Strings(fileNames)
+
 	//fwd, err := ioutil.ReadFile(path.Join(dir, name, forwardFile))
 	for _, fileName := range fileNames {
 		bytes, err := ioutil.ReadFile(fileName)

@@ -88,8 +88,8 @@ import "github.com/btubbs/pomegranate"
 var All = []pomegranate.Migration{
 {{range .Migrations}}  {
   Name: "{{.Name}}",
-  ForwardSQL: {{.QuotedForward}},
-  BackwardSQL: {{.QuotedBackward}},
+  ForwardSQL: {{.QuotedTemplateForward}},
+  BackwardSQL: {{.QuotedTemplateBackward}},
   },{{end}}
 }
 `
