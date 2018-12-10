@@ -7,6 +7,7 @@
 package pomegranate
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -29,13 +30,13 @@ type Migration struct {
 	BackwardSQL []string
 }
 
-//QuotedTemplateForward returns the ForwardSQL field of the Migration, surrounded with
-//backticks for easy injection into a migrations.go template.
+// QuotedTemplateForward returns the ForwardSQL field of the Migration, properly escaped for easy
+// injection into a migrations.go template.
 func (m Migration) QuotedTemplateForward() string {
 	//first quote
 	fwdSQLArr := []string{}
 	for _, sql := range m.ForwardSQL {
-		fwdSQLArr = append(fwdSQLArr, "`"+sql+"`")
+		fwdSQLArr = append(fwdSQLArr, strconv.Quote(sql))
 	}
 
 	//format for use in template
@@ -52,13 +53,13 @@ func (m Migration) QuotedTemplateForward() string {
 
 }
 
-// QuotedTemplateBackward returns the BackwardSQL field of the Migration, surrounded with
-// backticks for easy injection into a migrations.go template.
+// QuotedTemplateBackward returns the BackwardSQL field of the Migration, properly escaped for easy
+// injection into a migrations.go template.
 func (m Migration) QuotedTemplateBackward() string {
 	//first quote
 	bwdSQLArr := []string{}
 	for _, sql := range m.BackwardSQL {
-		bwdSQLArr = append(bwdSQLArr, "`"+sql+"`")
+		bwdSQLArr = append(bwdSQLArr, strconv.Quote(sql))
 	}
 
 	//format for use in template
