@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -64,7 +66,7 @@ func InitMigrationTimestamp(dir string, timestamp time.Time) error {
 // stubs.  The directory created will use the name provided to the function,
 // prepended by an auto-incrementing zero-padded number.
 func NewMigration(dir, name string) error {
-	names, err := getMigrationFileNames(dir)
+	names, err := getMigrationDirectoryNames(dir)
 	if err != nil {
 		return fmt.Errorf("error making new migration: %v", err)
 	}
@@ -104,7 +106,7 @@ func NewMigrationTimestamp(dir, name string, timestamp time.Time) error {
 // ReadMigrationFiles reads all the migration files in the given directory and
 // returns an array of Migration objects.
 func ReadMigrationFiles(dir string) ([]Migration, error) {
-	names, err := getMigrationFileNames(dir)
+	names, err := getMigrationDirectoryNames(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -117,11 +119,12 @@ func ReadMigrationFiles(dir string) ([]Migration, error) {
 		}
 		migs = append(migs, m)
 	}
+
 	return migs, nil
 }
 
-// return a sorted list of subdirs that match our pattern
-func getMigrationFileNames(dir string) ([]string, error) {
+// return a list of subdirs that match our pattern
+func getMigrationDirectoryNames(dir string) ([]string, error) {
 	names := []string{}
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -176,19 +179,57 @@ func makeStubName(numPart int, namePart string) string {
 	return fmt.Sprintf("%s_%s", zeroPad(numPart, leadingDigits), namePart)
 }
 
+//little utility to read the contents of a list of file names into
+//an array of strings which contains the contents.
+func readFileArray(fileNames []string) ([]string, error) {
+	files := []string{}
+
+	//sort the input array.  This is so fileName_a, fileName _b are sorted in the correct order
+	sort.Strings(fileNames)
+
+	//fwd, err := ioutil.ReadFile(path.Join(dir, name, forwardFile))
+	for _, fileName := range fileNames {
+		bytes, err := ioutil.ReadFile(fileName)
+		if err != nil {
+			return files, err
+		}
+		files = append(files, string(bytes))
+	}
+	return files, nil
+}
+
+// reads the directory containing the folder specified by name.
+// reads all the contents of the file into a Migration.
+// searches directory for all file names containing either "forward"
 func readMigration(dir, name string) (Migration, error) {
 	m := Migration{Name: name}
-	fwd, err := ioutil.ReadFile(path.Join(dir, name, forwardFile))
+	//grab all files that contain word "forward"/"backward"
+	fwdSearch := path.Join(dir, name, "/*forward*.sql")
+	bwdSearch := path.Join(dir, name, "/*backward*.sql")
+
+	fwd, err := filepath.Glob(fwdSearch)
 	if err != nil {
 		return m, err
 	}
 
-	back, err := ioutil.ReadFile(path.Join(dir, name, backwardFile))
+	bwd, err := filepath.Glob(bwdSearch)
 	if err != nil {
 		return m, err
 	}
-	m.ForwardSQL = string(fwd)
-	m.BackwardSQL = string(back)
+
+	fwdFilesArr, err := readFileArray(fwd)
+	if err != nil {
+		return m, err
+	}
+
+	bwdFilesArr, err := readFileArray(bwd)
+	if err != nil {
+		return m, err
+	}
+
+	m.ForwardSQL = fwdFilesArr
+	m.BackwardSQL = bwdFilesArr
+
 	return m, nil
 }
 
@@ -213,6 +254,7 @@ func writeGoMigrations(dir, goFile, packageName string, migs []Migration, genera
 	if err != nil {
 		return err
 	}
+
 	fname := path.Join(dir, goFile)
 	return ioutil.WriteFile(fname, formatted, 0644)
 }
