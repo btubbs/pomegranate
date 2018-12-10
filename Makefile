@@ -33,6 +33,8 @@ $(GOBIN)/dep:
 
 $(GOBIN)/golangci-lint:
 	go get -v -u github.com/golangci/golangci-lint
+	cd $GOPATH/src/github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install -ldflags "-X 'main.version=$(git describe --tags)' -X 'main.commit=$(git rev-parse --short HEAD)' -X 'main.date=$(date)'"	
 
 ci: profile.cov vet check $(GOBIN)/goveralls
 	$(GOBIN)/goveralls -coverprofile=$< -service=travis-ci

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	// register the pq driver with the sql package.
 	_ "github.com/lib/pq"
 )
 
