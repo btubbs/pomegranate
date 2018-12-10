@@ -84,11 +84,15 @@ package {{.PackageName}}
 import "github.com/btubbs/pomegranate"
 
 var All = []pomegranate.Migration{
-{{range .Migrations}}  {
+{{range .Migrations}}{
   Name: "{{.Name}}",
-  ForwardSQL: {{.QuotedTemplateForward}},
-  BackwardSQL: {{.QuotedTemplateBackward}},
-  },{{end}}
+  ForwardSQL: []string{
+		{{range $sql := .QuotedTemplateForward}}{{$sql}}{{end}},
+	},
+  BackwardSQL: []string{
+		{{range $sql := .QuotedTemplateForward}}{{$sql}}{{end}},
+	},
+	},{{end}}
 }
 `
 

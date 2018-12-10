@@ -32,47 +32,24 @@ type Migration struct {
 
 // QuotedTemplateForward returns the ForwardSQL field of the Migration, properly escaped for easy
 // injection into a migrations.go template.
-func (m Migration) QuotedTemplateForward() string {
+func (m Migration) QuotedTemplateForward() []string {
 	//first quote
 	fwdSQLArr := []string{}
 	for _, sql := range m.ForwardSQL {
 		fwdSQLArr = append(fwdSQLArr, strconv.Quote(sql))
 	}
-
-	//format for use in template
-	formattedString := "[]string{"
-	for index, str := range fwdSQLArr {
-		formattedString += str
-		if index < len(formattedString)-1 {
-			formattedString += ","
-		}
-	}
-
-	formattedString += "}"
-	return formattedString
-
+	return fwdSQLArr
 }
 
 // QuotedTemplateBackward returns the BackwardSQL field of the Migration, properly escaped for easy
 // injection into a migrations.go template.
-func (m Migration) QuotedTemplateBackward() string {
+func (m Migration) QuotedTemplateBackward() []string {
 	//first quote
 	bwdSQLArr := []string{}
 	for _, sql := range m.BackwardSQL {
 		bwdSQLArr = append(bwdSQLArr, strconv.Quote(sql))
 	}
-
-	//format for use in template
-	formattedString := "[]string{"
-	for index, str := range bwdSQLArr {
-		formattedString += str
-		if index < len(formattedString)-1 {
-			formattedString += ","
-		}
-	}
-
-	formattedString += "}"
-	return formattedString
+	return bwdSQLArr
 }
 
 // MigrationLogRecord represents a specific migration run at a specific point in time.  Unlike
