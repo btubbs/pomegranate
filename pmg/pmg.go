@@ -17,7 +17,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "pmg"
 	app.Usage = "Create and run Postgres migrations"
-	app.Version = "0.0.6"
+	app.Version = "0.0.7"
 
 	// dirFlag and dbFlag are declared once up here and used in multiple places
 	// below.  Single-use flags will be declared inline.
