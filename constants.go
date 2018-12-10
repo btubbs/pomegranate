@@ -1,8 +1,6 @@
 package pomegranate
 
 const leadingDigits = 5
-const forwardFile = "forward.sql"
-const backwardFile = "backward.sql"
 const timestampFormat = "20060102150405"
 
 const initForwardTmpl = `BEGIN;
