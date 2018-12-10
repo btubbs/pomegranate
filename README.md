@@ -29,7 +29,6 @@ You can use Pomegranate in two ways:
 
 1. As a standalone command line tool (`pmg`).
 2. As a library (`github.com/btubbs/pomegranate`) in your own Go project.
-3. Use `ts` flag if you prefer to use timestamps over auto-incrementing integers.
 
 ### Using `pmg`
 #### Create initial migration
