@@ -1,6 +1,5 @@
 .PHONY: tests viewcoverage check dep ci
 
-GOLIST=$(shell go list ./...)
 GOBIN ?= $(GOPATH)/bin
 
 all: tests check
@@ -21,19 +20,19 @@ viewcoverage: profile.cov
 	go tool cover -html=$<
 
 vet:
-	go vet $(GOLIST)
+	go vet ./...
 
-check: $(GOBIN)/megacheck
-	$(GOBIN)/megacheck $(GOLIST)
-
-$(GOBIN)/megacheck:
-	go get -v -u honnef.co/go/tools/cmd/megacheck
+check: $(GOBIN)/golangci-lint
+	$(GOBIN)/golangci-lint run
 
 $(GOBIN)/goveralls:
 	go get -v -u github.com/mattn/goveralls
 
 $(GOBIN)/dep:
 	go get -v -u github.com/golang/dep/cmd/dep
+
+$(GOBIN)/golangci-lint:
+	go get -v -u github.com/golangci/golangci-lint
 
 ci: profile.cov vet check $(GOBIN)/goveralls
 	$(GOBIN)/goveralls -coverprofile=$< -service=travis-ci
