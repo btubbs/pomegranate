@@ -32,7 +32,7 @@ $(GOBIN)/dep:
 	go get -v -u github.com/golang/dep/cmd/dep
 
 $(GOBIN)/golangci-lint:
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin v1.12.3
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOPATH)/bin v1.12.3
 
 ci: profile.cov vet check $(GOBIN)/goveralls
 	$(GOBIN)/goveralls -coverprofile=$< -service=travis-ci
