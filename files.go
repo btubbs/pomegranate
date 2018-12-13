@@ -236,7 +236,7 @@ func readMigration(dir, name string) (Migration, error) {
 func writeGoMigrations(dir, goFile, packageName string, migs []Migration, generateTag bool) error {
 	tmpl, err := template.New("migrations").Parse(srcTmpl)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	tmplData := srcContext{
