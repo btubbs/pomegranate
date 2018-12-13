@@ -87,10 +87,10 @@ var All = []pomegranate.Migration{
 {{range .Migrations}}{
   Name: "{{.Name}}",
   ForwardSQL: []string{
-		{{range $sql := .QuotedTemplateForward}}{{$sql}}{{end}},
+		{{range $sql := .QuotedTemplateForward}}{{$sql}},{{end}}
 	},
   BackwardSQL: []string{
-		{{range $sql := .QuotedTemplateForward}}{{$sql}}{{end}},
+		{{range $sql := .QuotedTemplateBackward}}{{$sql}},{{end}}
 	},
 	},{{end}}
 }
