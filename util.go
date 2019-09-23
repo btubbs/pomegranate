@@ -61,7 +61,7 @@ func getForwardMigrations(state []MigrationRecord, allMigrations []Migration) ([
 	stateCount := len(state)
 	migCount := len(allMigrations)
 	if stateCount > migCount {
-		return nil, errors.New("migration state longer than static list")
+		return nil, fmt.Errorf("migration state (%d entries) longer than static list (%d entries)", stateCount, migCount)
 	}
 
 	for i := 0; i < stateCount; i++ {
