@@ -149,7 +149,7 @@ func TestGetForwardMigrations(t *testing.T) {
 			statenames:  []string{"a", "b", "c"},
 			staticnames: []string{"a", "b"},
 			toRun:       nil,
-			err:         errors.New("migration state longer than static list"),
+			err:         errors.New("migration state (3 entries) longer than static list (2 entries)"),
 		},
 		{
 			desc:        "mismatched state",
