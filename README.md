@@ -20,8 +20,8 @@ will be compiled into their project and run with the `pomegranate` package.
 For now, pomegranate has to be built from source:
 
     $ git clone git@github.com:btubbs/pomegranate.git
-    $ cd pomegranate
-    $ go install cmd/pmg.go
+    $ cd pomegranate/pmg
+    $ go install pmg.go
 
 ## Usage
 
