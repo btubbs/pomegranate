@@ -25,5 +25,5 @@ $(GOBIN)/goveralls:
 $(GOBIN)/golangci-lint:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOPATH)/bin v1.12.3
 
-ci: profile.cov check $(GOBIN)/goveralls
+ci: profile.cov $(GOBIN)/goveralls
 	$(GOBIN)/goveralls -coverprofile=$< -service=travis-ci
