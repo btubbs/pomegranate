@@ -2,11 +2,9 @@ language: go
 go:
   - "1.14"
 sudo: false
-
 services:
   - postgresql
 addons:
   postgresql: "9.6"    
-
 script:
   - make ci
