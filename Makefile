@@ -8,10 +8,10 @@ bin/pmg: pmg/pmg.go
 	go build -o $@ $<
 
 tests:
-	go test .
+	go test . -mod=readonly
 
 profile.cov:
-	go test -coverprofile=$@
+	go test -coverprofile=$@ -mod=readonly
 
 viewcoverage: profile.cov 
 	go tool cover -html=$<
