@@ -1,4 +1,4 @@
-.PHONY: tests viewcoverage check dep ci
+.PHONY: tests viewcoverage check ci
 
 GOBIN ?= $(GOPATH)/bin
 
@@ -7,20 +7,14 @@ all: tests check
 bin/pmg: pmg/pmg.go
 	go build -o $@ $<
 
-dep: $(GOBIN)/dep
-	$(GOBIN)/dep ensure -v
-
-tests: dep
+tests:
 	go test .
 
-profile.cov: dep
+profile.cov:
 	go test -coverprofile=$@
 
 viewcoverage: profile.cov 
 	go tool cover -html=$<
-
-vet:
-	go vet ./...
 
 check: $(GOBIN)/golangci-lint
 	$(GOBIN)/golangci-lint run
@@ -28,11 +22,8 @@ check: $(GOBIN)/golangci-lint
 $(GOBIN)/goveralls:
 	go get -v -u github.com/mattn/goveralls
 
-$(GOBIN)/dep:
-	go get -v -u github.com/golang/dep/cmd/dep
-
 $(GOBIN)/golangci-lint:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOPATH)/bin v1.12.3
 
-ci: profile.cov vet check $(GOBIN)/goveralls
+ci: profile.cov check $(GOBIN)/goveralls
 	$(GOBIN)/goveralls -coverprofile=$< -service=travis-ci

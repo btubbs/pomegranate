@@ -8,7 +8,7 @@ cache:
     - ${GOPATH}/src/golang.org/x
     - ${GOPATH}/src/honnef.co
 go:
-  - "1.11"
+  - "1.14"
 sudo: false
 
 services:
