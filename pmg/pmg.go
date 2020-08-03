@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/btubbs/pomegranate"
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 func main() {
