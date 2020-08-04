@@ -19,9 +19,7 @@ will be compiled into their project and run with the `pomegranate` package.
 
 For now, pomegranate has to be built from source:
 
-    $ git clone git@github.com:btubbs/pomegranate.git
-    $ cd pomegranate/pmg
-    $ go install pmg.go
+    $ go install github.com/btubbs/pomegranate/pmg
 
 ## Usage
 
