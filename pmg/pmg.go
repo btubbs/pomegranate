@@ -10,33 +10,33 @@ import (
 	"time"
 
 	"github.com/btubbs/pomegranate"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "pmg"
 	app.Usage = "Create and run Postgres migrations"
-	app.Version = "0.0.9"
+	app.Version = "0.0.10"
 
 	// dirFlag and dbFlag are declared once up here and used in multiple places
 	// below.  Single-use flags will be declared inline.
-	dirFlag := cli.StringFlag{
+	dirFlag := &cli.StringFlag{
 		Name:  "dir",
 		Value: ".",
 		Usage: "migrations directory",
 	}
-	dbFlag := cli.StringFlag{
-		Name:   "dburl",
-		Usage:  "database url",
-		EnvVar: "DATABASE_URL",
+	dbFlag := &cli.StringFlag{
+		Name:    "dburl",
+		Usage:   "database url",
+		EnvVars: []string{"DATABASE_URL"},
 	}
-	timestampFlag := cli.BoolFlag{
+	timestampFlag := &cli.BoolFlag{
 		Name:  "ts",
 		Usage: "To use timestamps for the number part of the migration name",
 	}
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:  "init",
 			Usage: "create initial migration",
@@ -89,17 +89,17 @@ func main() {
 			Usage: "convert .sql migrations to migrations.go file",
 			Flags: []cli.Flag{
 				dirFlag,
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "gofile",
 					Value: "migrations.go",
 					Usage: "filename to be written",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "package",
 					Value: "migrations",
 					Usage: "Go package name for file to be written",
 				},
-				cli.BoolFlag{
+				&cli.BoolFlag{
 					Name:  "nogenerate",
 					Usage: "Don't include a go:generate tag inside file",
 				},
