@@ -24,11 +24,11 @@ func main() {
 	dirFlag := &cli.StringFlag{
 		Name:  "dir",
 		Value: ".",
-		Usage: "migrations directory",
+		Usage: "Migrations directory",
 	}
 	dbFlag := &cli.StringFlag{
 		Name:    "dburl",
-		Usage:   "database url",
+		Usage:   "Database URL",
 		EnvVars: []string{"DATABASE_URL"},
 	}
 	timestampFlag := &cli.BoolFlag{
@@ -39,7 +39,7 @@ func main() {
 	app.Commands = []*cli.Command{
 		{
 			Name:  "init",
-			Usage: "create initial migration",
+			Usage: "Create initial migration",
 			Flags: []cli.Flag{dirFlag, timestampFlag},
 			Action: func(c *cli.Context) error {
 				dir := c.String("dir")
@@ -59,7 +59,7 @@ func main() {
 		},
 		{
 			Name:  "new",
-			Usage: "create new (not initial) migration with given name",
+			Usage: "Create new (not initial) migration with given name",
 			Flags: []cli.Flag{dirFlag, timestampFlag},
 			Action: func(c *cli.Context) error {
 				name, err := getArg(c, 0, "migration name")
@@ -86,7 +86,7 @@ func main() {
 		},
 		{
 			Name:  "ingest",
-			Usage: "convert .sql migrations to migrations.go file",
+			Usage: "Convert .sql migrations to migrations.go file",
 			Flags: []cli.Flag{
 				dirFlag,
 				&cli.StringFlag{
@@ -191,7 +191,7 @@ func main() {
 		},
 		{
 			Name:  "state",
-			Usage: "show the migration state",
+			Usage: "Show the migration state",
 			Flags: []cli.Flag{dbFlag},
 			Action: func(c *cli.Context) error {
 				db, err := pomegranate.Connect(c.String("dburl"))
@@ -214,7 +214,7 @@ func main() {
 		},
 		{
 			Name:  "log",
-			Usage: "show the migration log",
+			Usage: "Show the migration log",
 			Flags: []cli.Flag{dbFlag},
 			Action: func(c *cli.Context) error {
 				db, err := pomegranate.Connect(c.String("dburl"))
