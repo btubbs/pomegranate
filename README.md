@@ -1,3 +1,7 @@
+# THIS REPO HAS MOVED
+
+See the new home at https://github.com/nav-inc/pomegranate
+
 # Pomegranate [![Build Status](https://travis-ci.org/btubbs/pomegranate.svg?branch=master)](https://travis-ci.org/btubbs/pomegranate) [![Coverage Status](https://coveralls.io/repos/github/btubbs/pomegranate/badge.svg?branch=master)](https://coveralls.io/github/btubbs/pomegranate?branch=master)
 
 Pomegranate is a tool for creating and running schema migrations for the
